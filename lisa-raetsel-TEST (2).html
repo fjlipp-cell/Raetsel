@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Ein Raetsel fuer Lisa</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+:root{--bg:#0d0d0d;--surface:#161616;--surface2:#1f1f1f;--gold:#c9a84c;--gold2:#e8c97a;--cream:#f5efe0;--text:#e8e0d0;--muted:#7a7060;--r:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#app{max-width:480px;margin:0 auto;padding:0 20px 60px}
+#intro{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px}
+#quiz,#final{display:none}
+.intro-icon{font-size:64px;margin-bottom:24px}
+.intro-pre{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+h1{font-family:'Playfair Display',serif;font-size:clamp(30px,8vw,42px);line-height:1.2;color:var(--cream);margin-bottom:20px}
+.intro-desc{color:var(--muted);font-size:15px;line-height:1.6;max-width:300px;margin-bottom:40px}
+.btn-gold{background:linear-gradient(135deg,#c9a84c,#e8c97a);color:#0d0d0d;border:none;padding:16px 44px;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 24px rgba(201,168,76,0.3)}
+.prog-wrap{margin-bottom:20px;padding-top:20px}
+.prog-info{display:flex;justify-content:space-between;margin-bottom:8px}
+.prog-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.prog-num{font-family:'Playfair Display',serif;font-size:14px;color:var(--gold)}
+.prog-track{height:3px;background:var(--surface2);border-radius:3px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .5s}
+.card{background:var(--surface);border:1px solid rgba(201,168,76,.12);border-radius:var(--r);padding:28px 22px 24px}
+.q-type{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;opacity:.8}
+.q-text{font-family:'Playfair Display',serif;font-size:clamp(17px,4.5vw,21px);line-height:1.45;color:var(--cream);margin-bottom:20px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{background:var(--surface2);border:1.5px solid rgba(255,255,255,.06);border-radius:10px;padding:14px 16px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;line-height:1.4}
+.choice.correct{border-color:#4caf7d;background:rgba(76,175,125,.1);color:#7ee8a8}
+.choice.wrong{border-color:#c95050;background:rgba(201,80,80,.1);color:#e88888}
+.input-wrap{display:flex;flex-direction:column;gap:10px}
+.text-input{background:var(--surface2);border:1.5px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;color:var(--cream);font-size:16px;font-family:'DM Sans',sans-serif;outline:none;width:100%}
+.text-input.correct{border-color:#4caf7d}
+.text-input.wrong{border-color:#c95050}
+.btn-check{background:var(--surface2);border:1.5px solid rgba(201,168,76,.2);border-radius:10px;padding:14px;color:var(--gold2);font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+.hint{margin-top:10px;font-size:12px;color:var(--muted);font-style:italic}
+.feedback{margin-top:16px;padding:14px 16px;border-radius:10px;font-size:14px;line-height:1.5;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.25);color:#7ee8a8}
+.feedback.nope{background:rgba(201,80,80,.1);border:1px solid rgba(201,80,80,.25);color:#e88888}
+.btn-next{margin-top:18px;width:100%;background:linear-gradient(135deg,#c9a84c,#e8c97a);border:none;border-radius:50px;padding:15px;color:#0d0d0d;font-size:15px;font-weight:600;cursor:pointer;display:none;font-family:'DM Sans',sans-serif}
+.btn-next.show{display:block}
+.firework{font-size:52px;text-align:center;margin-bottom:10px}
+.final-title{font-family:'Playfair Display',serif;font-size:clamp(26px,7vw,34px);color:var(--cream);text-align:center;margin-bottom:6px}
+.final-sub{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:30px}
+.msg-card{background:var(--surface);border:1px solid rgba(201,168,76,.2);border-radius:var(--r);padding:28px 24px;margin-bottom:18px;width:100%}
+.msg-text{font-family:'Playfair Display',serif;font-size:16px;line-height:1.75;color:var(--cream);font-style:italic}
+.ticket-card{background:var(--surface);border:1px solid rgba(201,168,76,.15);border-radius:var(--r);padding:24px 22px;width:100%}
+.t-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.t-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--cream)}
+.t-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.t-row{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.t-icon{font-size:18px;min-width:24px}
+.t-detail{font-size:14px;color:var(--text);line-height:1.45}
+.t-detail strong{display:block;color:var(--cream);font-weight:500}
+.t-divider{height:1px;background:rgba(201,168,76,.1);margin:14px 0}
+.t-code{font-size:12px;color:var(--muted)}
+.t-code span{color:var(--gold2);font-family:monospace;font-size:13px}
+.heart{text-align:center;font-size:30px;margin-top:26px}
+.btn-autofill{display:block;margin-bottom:16px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.35);border-radius:8px;padding:7px 14px;color:var(--gold2);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%}
+.btn-autofill:active{background:rgba(201,168,76,0.3)}
+
+/* SUDOKU */
+.sudoku-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.sudoku-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;background:rgba(201,168,76,0.3);border:2px solid rgba(201,168,76,0.5);border-radius:8px;overflow:hidden;width:100%;max-width:340px}
+.sudoku-grid .cell{background:var(--surface2);aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(13px,3.5vw,18px);font-weight:500;color:var(--cream);position:relative;cursor:pointer;transition:background 0.15s;border:none;outline:none;font-family:'DM Sans',sans-serif}
+.sudoku-grid .cell.given{color:var(--gold2);font-weight:700;cursor:default;background:rgba(201,168,76,0.07)}
+.sudoku-grid .cell.selected{background:rgba(201,168,76,0.18)}
+.sudoku-grid .cell.error{background:rgba(201,80,80,0.18);color:#e88888}
+.sudoku-grid .cell.box-right{border-right:2px solid rgba(201,168,76,0.5)}
+.sudoku-grid .cell.box-bottom{border-bottom:2px solid rgba(201,168,76,0.5)}
+.numpad{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;width:100%;max-width:340px}
+.numpad button{background:var(--surface2);border:1.5px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 0;color:var(--text);font-size:16px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s,border-color 0.15s}
+.numpad button:active{background:rgba(201,168,76,0.2);border-color:var(--gold)}
+.numpad .del-btn{background:var(--surface2);border:1.5px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 0;color:var(--muted);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.sudoku-err{font-size:13px;color:#e88888;text-align:center;min-height:20px}
+.sudoku-ok{font-size:13px;color:#7ee8a8;text-align:center;min-height:20px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="intro">
+    <div class="intro-icon">&#x1F510;</div>
+    <div class="intro-pre">Ein Geschenk wartet auf dich</div>
+    <h1>Hallo Lisa,<br>bist du bereit?</h1>
+    <p class="intro-desc">&#x1F9E0; L&#xF6;se alle 6 R&#xE4;tsel, um dein Geburtstagsgeschenk zu enth&#xFC;llen. Viel Erfolg!</p>
+    <button class="btn-gold" id="btnStart">Los geht&#x2019;s &#x2192;</button>
+  </div>
+  <div id="quiz">
+    <div class="prog-wrap">
+      <div class="prog-info">
+        <span class="prog-label">Fortschritt</span>
+        <span class="prog-num" id="progNum">1 / 8</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="card" id="card"></div>
+  </div>
+  <div id="final">
+    <div class="firework">&#x1F389;</div>
+    <div class="final-title">Geschafft, Lisa!</div>
+    <div class="final-sub">Dein Geschenk wartet</div>
+    <div class="msg-card">
+      <p class="msg-text">Hallo Schatzi, sch&#xF6;n dass du das kleine R&#xE4;tsel l&#xF6;sen konntest. Ich will dir einfach nur sagen, dass ich dich &#xFC;ber alles liebe und jeden Tag mit dir genie&#xDF;e. Das hier ist ein kleines fr&#xFC;hzeitiges Geburtstagsgeschenk f&#xFC;r dich. Ich freue mich sehr auf einen sch&#xF6;nen Sonntag in Wien mit dir zusammen. &#x2764;&#xFE0F;</p>
+    </div>
+    <div class="ticket-card">
+      <div class="t-label">&#x1F3AB; Dein Ticket</div>
+      <div class="t-title">K&#xD6;RPERWELTEN</div>
+      <div class="t-sub">Am Puls der Zeit</div>
+      <div class="t-row"><div class="t-icon">&#x1F4C5;</div><div class="t-detail"><strong>22. M&#xE4;rz 2026</strong>Sonntag</div></div>
+      <div class="t-row"><div class="t-icon">&#x1F550;</div><div class="t-detail"><strong>Einlass 12:30 &#x2013; 13:00 Uhr</strong>Verweildauer unbegrenzt</div></div>
+      <div class="t-row"><div class="t-icon">&#x1F4CD;</div><div class="t-detail"><strong>Wiener Stadthalle, Studio F</strong>Roland Rainer Platz 1, 1150 Wien</div></div>
+      <div class="t-row"><div class="t-icon">&#x1F4B6;</div><div class="t-detail"><strong>1 x Erwachsene &#x2013; 25,00 &#x20AC;</strong>inkl. Geb&#xFC;hren</div></div>
+      <div class="t-divider"></div>
+      <div class="t-code">Ticketcode: <span>t647</span></div>
+    </div>
+    <div class="heart">&#x1F49B;</div>
+  </div>
+</div>
+<script>
+(function(){
+
+// ── SUDOKU DATA ──────────────────────────────────────────────────
+// 0 = empty cell (mittelschwer: ~30 givens)
+var SOLUTION = [
+  [5,3,4, 6,7,8, 9,1,2],
+  [6,7,2, 1,9,5, 3,4,8],
+  [1,9,8, 3,4,2, 5,6,7],
+
+  [8,5,9, 7,6,1, 4,2,3],
+  [4,2,6, 8,5,3, 7,9,1],
+  [7,1,3, 9,2,4, 8,5,6],
+
+  [9,6,1, 5,3,7, 2,8,4],
+  [2,8,7, 4,1,9, 6,3,5],
+  [3,4,5, 2,8,6, 1,7,9]
+];
+
+var PUZZLE = [
+  [5,3,0, 0,7,0, 0,0,0],
+  [6,0,0, 1,9,5, 0,0,0],
+  [0,9,8, 0,0,0, 0,6,0],
+
+  [8,0,0, 0,6,0, 0,0,3],
+  [4,0,0, 8,0,3, 0,0,1],
+  [7,0,0, 0,2,0, 0,0,6],
+
+  [0,6,0, 0,0,0, 2,8,0],
+  [0,0,0, 4,1,9, 0,0,5],
+  [0,0,0, 0,8,0, 0,7,9]
+];
+
+// ── BATTLESHIP ───────────────────────────────────────────────────
+var BS = {
+  SIZE: 10,
+  // Ships: [length, count]
+  SHIPS: [[5,1],[4,1],[3,2],[2,1]],
+  playerGrid: [],   // 0=empty,1=ship,2=miss,3=hit
+  aiGrid: [],       // same
+  playerShips: [],  // [{r,c,len,dir,hits}]
+  aiShips: [],
+  aiMoves: [],      // cells AI has already shot
+  aiHits: [],       // cells AI has hit (for hunt mode)
+  aiHuntTarget: [], // cells to try next (hunt mode)
+  gameOver: false,
+  playerTurn: true,
+  firstGame: true,  // first game AI plays extra smart (to make Lisa lose)
+
+  init: function(){
+    this.playerGrid = this.emptyGrid();
+    this.aiGrid = this.emptyGrid();
+    this.playerShips = [];
+    this.aiShips = [];
+    this.aiMoves = [];
+    this.aiHits = [];
+    this.aiHuntTarget = [];
+    this.gameOver = false;
+    this.playerTurn = true;
+    // Place ships
+    this.placeShipsRandom(this.aiGrid, this.aiShips);
+    this.placeShipsRandom(this.playerGrid, this.playerShips);
+  },
+
+  emptyGrid: function(){
+    var g=[];
+    for(var r=0;r<this.SIZE;r++){g.push([]);for(var c=0;c<this.SIZE;c++)g[r].push(0);}
+    return g;
+  },
+
+  placeShipsRandom: function(grid, ships){
+    var S=this;
+    S.SHIPS.forEach(function(spec){
+      var len=spec[0], count=spec[1];
+      for(var n=0;n<count;n++){
+        var placed=false;
+        var tries=0;
+        while(!placed && tries<1000){
+          tries++;
+          var dir=Math.random()<0.5?'h':'v';
+          var r=Math.floor(Math.random()*S.SIZE);
+          var c=Math.floor(Math.random()*S.SIZE);
+          if(S.canPlace(grid,r,c,len,dir)){
+            S.doPlace(grid,ships,r,c,len,dir);
+            placed=true;
+          }
+        }
+      }
+    });
+  },
+
+  canPlace: function(grid,r,c,len,dir){
+    for(var i=0;i<len;i++){
+      var rr=dir==='v'?r+i:r;
+      var cc=dir==='h'?c+i:c;
+      if(rr<0||rr>=this.SIZE||cc<0||cc>=this.SIZE) return false;
+      // check cell and neighbors
+      for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){
+        var nr=rr+dr, nc=cc+dc;
+        if(nr>=0&&nr<this.SIZE&&nc>=0&&nc<this.SIZE&&grid[nr][nc]===1) return false;
+      }
+    }
+    return true;
+  },
+
+  doPlace: function(grid,ships,r,c,len,dir){
+    var cells=[];
+    for(var i=0;i<len;i++){
+      var rr=dir==='v'?r+i:r;
+      var cc=dir==='h'?c+i:c;
+      grid[rr][cc]=1;
+      cells.push([rr,cc]);
+    }
+    ships.push({r:r,c:c,len:len,dir:dir,cells:cells,hits:0});
+  },
+
+  playerShoot: function(r,c){
+    if(!this.playerTurn||this.gameOver) return null;
+    if(this.aiGrid[r][c]===2||this.aiGrid[r][c]===3) return null;
+    var hit = this.aiGrid[r][c]===1;
+    this.aiGrid[r][c] = hit?3:2;
+    if(hit){
+      var ship=this.findShip(this.aiShips,r,c);
+      if(ship){ship.hits++;if(ship.hits===ship.len)ship.sunk=true;}
+    }
+    if(this.checkWin(this.aiShips)){this.gameOver=true;return 'player_win';}
+    this.playerTurn=false;
+    return hit?'hit':'miss';
+  },
+
+  aiShoot: function(){
+    if(this.playerTurn||this.gameOver) return null;
+    var r,c,key;
+    var S=this;
+
+    // Hard mode on first game: use probability density
+    if(this.firstGame){
+      var best=this.bestAiMove();
+      r=best[0]; c=best[1];
+    } else {
+      // Medium: hunt/target mode
+      if(this.aiHuntTarget.length>0){
+        var t=this.aiHuntTarget.shift();
+        r=t[0]; c=t[1];
+      } else {
+        // Parity shooting (checkerboard pattern)
+        var candidates=[];
+        for(var rr=0;rr<S.SIZE;rr++){
+          for(var cc=0;cc<S.SIZE;cc++){
+            if(S.playerGrid[rr][cc]<2 && (rr+cc)%2===0) candidates.push([rr,cc]);
+          }
+        }
+        if(candidates.length===0){
+          for(var rr=0;rr<S.SIZE;rr++)
+            for(var cc=0;cc<S.SIZE;cc++)
+              if(S.playerGrid[rr][cc]<2) candidates.push([rr,cc]);
+        }
+        var pick=candidates[Math.floor(Math.random()*candidates.length)];
+        r=pick[0]; c=pick[1];
+      }
+    }
+
+    key=r+','+c;
+    this.aiMoves.push(key);
+    var hit=this.playerGrid[r][c]===1;
+    this.playerGrid[r][c]=hit?3:2;
+
+    if(hit){
+      this.aiHits.push([r,c]);
+      var ship=this.findShip(this.playerShips,r,c);
+      if(ship){
+        ship.hits++;
+        if(ship.hits===ship.len){
+          ship.sunk=true;
+          // clear hunt targets for this ship
+          this.aiHuntTarget=[];
+          this.aiHits=this.aiHits.filter(function(h){return !ship.cells.some(function(sc){return sc[0]===h[0]&&sc[1]===h[1];});});
+        } else {
+          // add adjacent targets
+          this.addHuntTargets(r,c);
+        }
+      }
+    }
+
+    if(this.checkWin(this.playerShips)){this.gameOver=true;return 'ai_win';}
+    this.playerTurn=true;
+    return {result:hit?'hit':'miss', r:r, c:c};
+  },
+
+  addHuntTargets: function(r,c){
+    var S=this;
+    var dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+    // If multiple hits in a line, extend that line
+    if(S.aiHits.length>1){
+      var last=S.aiHits[S.aiHits.length-2];
+      var dr=r-last[0], dc=c-last[1];
+      if(Math.abs(dr)<=1&&Math.abs(dc)<=1&&(dr===0||dc===0)){
+        var nr=r+dr,nc=c+dc;
+        if(nr>=0&&nr<S.SIZE&&nc>=0&&nc<S.SIZE&&S.playerGrid[nr][nc]<2)
+          S.aiHuntTarget.unshift([nr,nc]);
+        var pr=last[0]-dr,pc=last[1]-dc;
+        if(pr>=0&&pr<S.SIZE&&pc>=0&&pc<S.SIZE&&S.playerGrid[pr][pc]<2)
+          S.aiHuntTarget.push([pr,pc]);
+        return;
+      }
+    }
+    dirs.forEach(function(d){
+      var nr=r+d[0],nc=c+d[1];
+      if(nr>=0&&nr<S.SIZE&&nc>=0&&nc<S.SIZE&&S.playerGrid[nr][nc]<2)
+        S.aiHuntTarget.push([nr,nc]);
+    });
+  },
+
+  bestAiMove: function(){
+    // Probability density map
+    var S=this;
+    var density=S.emptyGrid().map(function(r){return r.map(function(){return 0;});});
+    S.SHIPS.forEach(function(spec){
+      var len=spec[0];
+      // Check all unsunk ships of this length
+      var hasSunk=S.playerShips.filter(function(sh){return sh.len===len&&sh.sunk;}).length;
+      var total=spec[1];
+      if(hasSunk>=total) return;
+      // Horizontal
+      for(var r=0;r<S.SIZE;r++){
+        for(var c=0;c<=S.SIZE-len;c++){
+          var ok=true;
+          for(var i=0;i<len;i++){
+            var v=S.playerGrid[r][c+i];
+            if(v===2||v===3&&!S.aiHits.some(function(h){return h[0]===r&&h[1]===c+i;})) {ok=false;break;}
+          }
+          if(ok) for(var i=0;i<len;i++) density[r][c+i]++;
+        }
+      }
+      // Vertical
+      for(var r=0;r<=S.SIZE-len;r++){
+        for(var c=0;c<S.SIZE;c++){
+          var ok=true;
+          for(var i=0;i<len;i++){
+            var v=S.playerGrid[r+i][c];
+            if(v===2||v===3&&!S.aiHits.some(function(h){return h[0]===r+i&&h[1]===c;})) {ok=false;break;}
+          }
+          if(ok) for(var i=0;i<len;i++) density[r+i][c]++;
+        }
+      }
+    });
+    // Find max density cell not yet shot
+    var best=null, bestVal=-1;
+    for(var r=0;r<S.SIZE;r++){
+      for(var c=0;c<S.SIZE;c++){
+        if(S.playerGrid[r][c]<2 && density[r][c]>bestVal){
+          bestVal=density[r][c]; best=[r,c];
+        }
+      }
+    }
+    return best||[Math.floor(Math.random()*S.SIZE),Math.floor(Math.random()*S.SIZE)];
+  },
+
+  findShip: function(ships,r,c){
+    return ships.find(function(s){return s.cells.some(function(cell){return cell[0]===r&&cell[1]===c;});});
+  },
+
+  checkWin: function(ships){
+    return ships.every(function(s){return s.sunk;});
+  },
+
+  totalShipCells: function(ships){
+    return ships.reduce(function(a,s){return a+s.len;},0);
+  }
+};
+
+// ── BATTLESHIP RENDER ────────────────────────────────────────────
+function renderBattleship(){
+  var card=document.getElementById("card");
+  card.innerHTML="";
+
+  var tag=document.createElement("div");tag.className="q-type";
+  tag.textContent="Raetsel 3 von "+TOTAL+" - Schiffe versenken";card.appendChild(tag);
+
+  var qt=document.createElement("div");qt.className="q-text";
+  qt.textContent="Besiege den KI-Bot um weiterzukommen!";card.appendChild(qt);
+
+  // Status bar
+  var status=document.createElement("div");status.id="bs-status";
+  status.style.cssText="font-size:13px;color:var(--gold);margin-bottom:12px;min-height:20px;text-align:center;";
+  status.textContent="Du bist dran! Schiesse auf das KI-Feld (unten).";
+  card.appendChild(status);
+
+  // Layout: two grids side by side
+  var layout=document.createElement("div");
+  layout.style.cssText="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;";
+
+  // --- Player grid ---
+  var pWrap=document.createElement("div");pWrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:4px;";
+  var pLabel=document.createElement("div");pLabel.style.cssText="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;";
+  pLabel.textContent="Dein Feld";pWrap.appendChild(pLabel);
+  pWrap.appendChild(bsMakeGrid("bs-player",false));
+  layout.appendChild(pWrap);
+
+  // --- AI grid ---
+  var aWrap=document.createElement("div");aWrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:4px;";
+  var aLabel=document.createElement("div");aLabel.style.cssText="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;";
+  aLabel.textContent="KI-Feld";aWrap.appendChild(aLabel);
+  aWrap.appendChild(bsMakeGrid("bs-ai",true));
+  layout.appendChild(aWrap);
+
+  card.appendChild(layout);
+
+  // Ships remaining display
+  var shipsInfo=document.createElement("div");shipsInfo.id="bs-ships";
+  shipsInfo.style.cssText="display:flex;justify-content:space-around;margin-top:12px;font-size:11px;color:var(--muted);";
+  card.appendChild(shipsInfo);
+  bsUpdateShipsInfo();
+
+  // Autofill button (test only)
+  var afBs=document.createElement("button");afBs.className="btn-autofill";afBs.textContent="Loesung automatisch einfuellen (KI-Schiffe sichtbar + autoplay)";
+  afBs.addEventListener("click",bsAutoSolve);
+  card.appendChild(afBs);
+
+  // Next button (hidden until win)
+  var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
+  bn.textContent="Weiter ->";bn.addEventListener("click",next);
+  card.appendChild(bn);
+
+  bsRenderGridCells();
+}
+
+function bsMakeGrid(id, clickable){
+  var wrap=document.createElement("div");
+  wrap.id=id+"-wrap";
+  var cellSize="clamp(24px,7.5vw,34px)";
+  wrap.style.cssText="display:grid;grid-template-columns:repeat(10,"+cellSize+");grid-template-rows:repeat(10,"+cellSize+");gap:2px;";
+  for(var r=0;r<10;r++){
+    for(var c=0;c<10;c++){
+      var cell=document.createElement("div");
+      cell.id=id+"-"+r+"-"+c;
+      cell.style.cssText="background:var(--surface2);border-radius:3px;cursor:"+(clickable?"pointer":"default")+";display:flex;align-items:center;justify-content:center;font-size:12px;transition:background 0.1s;";
+      if(clickable){
+        (function(row,col){
+          cell.addEventListener("click",function(){bsPlayerShoot(row,col);});
+          cell.addEventListener("mouseenter",function(){if(BS.playerTurn&&!BS.gameOver&&BS.aiGrid[row][col]<2)this.style.background="rgba(201,168,76,0.2)";});
+          cell.addEventListener("mouseleave",function(){bsColorCell(this,BS.aiGrid[row][col],false);});
+        })(r,c);
+      }
+      wrap.appendChild(cell);
+    }
+  }
+  return wrap;
+}
+
+function bsColorCell(el, val, isPlayer){
+  if(val===0) el.style.background="var(--surface2)";
+  else if(val===1) el.style.background=isPlayer?"rgba(201,168,76,0.25)":"var(--surface2)";
+  else if(val===2){el.style.background="rgba(100,120,180,0.3)";el.textContent="·";}
+  else if(val===3){el.style.background="rgba(201,80,80,0.5)";el.textContent="✕";}
+}
+
+function bsRenderGridCells(){
+  for(var r=0;r<10;r++){
+    for(var c=0;c<10;c++){
+      var pel=document.getElementById("bs-player-"+r+"-"+c);
+      var ael=document.getElementById("bs-ai-"+r+"-"+c);
+      if(pel) bsColorCell(pel, BS.playerGrid[r][c], true);
+      if(ael) bsColorCell(ael, BS.aiGrid[r][c], false);
+    }
+  }
+  // Show sunk ships on AI grid + grey out surrounding cells
+  BS.aiShips.forEach(function(s){
+    if(s.sunk){
+      s.cells.forEach(function(cell){
+        var el=document.getElementById("bs-ai-"+cell[0]+"-"+cell[1]);
+        if(el){el.style.background="rgba(201,80,80,0.7)";el.textContent="✕";}
+      });
+      // Grey out all border cells around sunken ship
+      s.cells.forEach(function(cell){
+        for(var dr=-1;dr<=1;dr++){
+          for(var dc=-1;dc<=1;dc++){
+            if(dr===0&&dc===0) continue;
+            var nr=cell[0]+dr, nc=cell[1]+dc;
+            if(nr<0||nr>=10||nc<0||nc>=10) continue;
+            // Only mark if not already hit/sunk
+            if(BS.aiGrid[nr][nc]===0||BS.aiGrid[nr][nc]===2){
+              var el=document.getElementById("bs-ai-"+nr+"-"+nc);
+              if(el&&el.textContent!=="✕"){
+                el.style.background="rgba(100,100,100,0.35)";
+                el.textContent="·";
+                el.style.pointerEvents="none";
+                // Mark as miss so it can't be clicked again
+                if(BS.aiGrid[nr][nc]===0) BS.aiGrid[nr][nc]=2;
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+  // Show sunk ships on player grid + grey border
+  BS.playerShips.forEach(function(s){
+    if(s.sunk){
+      s.cells.forEach(function(cell){
+        var el=document.getElementById("bs-player-"+cell[0]+"-"+cell[1]);
+        if(el){el.style.background="rgba(201,80,80,0.7)";el.textContent="✕";}
+      });
+      s.cells.forEach(function(cell){
+        for(var dr=-1;dr<=1;dr++){
+          for(var dc=-1;dc<=1;dc++){
+            if(dr===0&&dc===0) continue;
+            var nr=cell[0]+dr, nc=cell[1]+dc;
+            if(nr<0||nr>=10||nc<0||nc>=10) continue;
+            if(BS.playerGrid[nr][nc]===0||BS.playerGrid[nr][nc]===2){
+              var el=document.getElementById("bs-player-"+nr+"-"+nc);
+              if(el&&el.textContent!=="✕"){
+                el.style.background="rgba(100,100,100,0.35)";
+                el.textContent="·";
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+}
+
+function bsUpdateShipsInfo(){
+  var el=document.getElementById("bs-ships");
+  if(!el) return;
+  var playerLeft=BS.playerShips.filter(function(s){return !s.sunk;}).length;
+  var aiLeft=BS.aiShips.filter(function(s){return !s.sunk;}).length;
+  el.innerHTML="<span>Deine Schiffe: <strong style='color:var(--gold2)'>"+playerLeft+" verbleibend</strong></span>"
+    +"<span>KI-Schiffe: <strong style='color:var(--gold2)'>"+aiLeft+" verbleibend</strong></span>";
+}
+
+function bsSetStatus(msg, color){
+  var el=document.getElementById("bs-status");
+  if(el){el.textContent=msg;el.style.color=color||"var(--gold)";}
+}
+
+function bsPlayerShoot(r,c){
+  if(!BS.playerTurn||BS.gameOver) return;
+  var result=BS.playerShoot(r,c);
+  if(!result) return; // already shot here
+
+  bsRenderGridCells();
+  bsUpdateShipsInfo();
+
+  if(result==='player_win'){
+    BS.firstGame=false;
+    bsSetStatus("Du hast gewonnen! Alle KI-Schiffe versenkt! 🎉","#7ee8a8");
+    document.getElementById("bn").className="btn-next show";
+    return;
+  }
+  bsSetStatus(result==='hit'?"Treffer! Nochmal du! ✓":"Daneben! KI ist dran...","var(--gold)");
+
+  if(result==='miss'){
+    // AI shoots after short delay
+    setTimeout(bsDoAiTurn, 600);
+  } else {
+    // hit: player shoots again
+    BS.playerTurn=true;
+  }
+}
+
+function bsDoAiTurn(){
+  if(BS.playerTurn||BS.gameOver) return;
+  var res=BS.aiShoot();
+  if(!res) return;
+
+  bsRenderGridCells();
+  bsUpdateShipsInfo();
+
+  if(res==='ai_win'){
+    bsSetStatus("Die KI hat gewonnen! Versuche es nochmal! 💪","#e88888");
+    // Reset and restart after delay
+    setTimeout(function(){
+      BS.init();
+      BS.firstGame=false; // second game is medium difficulty
+      bsRenderGridCells();
+      bsUpdateShipsInfo();
+      bsSetStatus("Neues Spiel! Du bist dran!","var(--gold)");
+    }, 2500);
+    return;
+  }
+
+  if(res.result==='hit'){
+    bsSetStatus("KI trifft! KI schiesst nochmal...","#e88888");
+    setTimeout(bsDoAiTurn, 700);
+  } else {
+    bsSetStatus("KI daneben! Du bist dran.","var(--gold)");
+  }
+}
+
+function bsAutoSolve(){
+  // Instantly sink all AI ships for player
+  BS.aiShips.forEach(function(s){
+    s.cells.forEach(function(cell){
+      BS.aiGrid[cell[0]][cell[1]]=3;
+    });
+    s.hits=s.len;
+    s.sunk=true;
+  });
+  BS.gameOver=true;
+  BS.firstGame=false;
+  bsRenderGridCells();
+  bsUpdateShipsInfo();
+  bsSetStatus("Alle KI-Schiffe automatisch versenkt! 🎉","#7ee8a8");
+  document.getElementById("bn").className="btn-next show";
+}
+
+// ── SNAKE ────────────────────────────────────────────────────────
+var SN = {
+  COLS: 20,
+  ROWS: 20,
+  TARGET: 15,
+  INTERVAL: 150,
+  snake: [],
+  dir: {x:1,y:0},
+  nextDir: {x:1,y:0},
+  food: null,
+  length: 1,
+  gameOver: false,
+  won: false,
+  timer: null,
+  started: false,
+
+  init: function(){
+    if(this.timer) clearInterval(this.timer);
+    this.snake = [{x:5,y:10},{x:4,y:10},{x:3,y:10}];
+    this.length = 3;
+    this.dir = {x:1,y:0};
+    this.nextDir = {x:1,y:0};
+    this.gameOver = false;
+    this.won = false;
+    this.started = false;
+    this.timer = null;
+    this.placeFood();
+  },
+
+  placeFood: function(){
+    var S=this, empty=[];
+    for(var y=0;y<S.ROWS;y++){
+      for(var x=0;x<S.COLS;x++){
+        if(!S.snake.some(function(s){return s.x===x&&s.y===y;}))
+          empty.push({x:x,y:y});
+      }
+    }
+    this.food = empty[Math.floor(Math.random()*empty.length)];
+  },
+
+  setDir: function(dx,dy){
+    // Prevent reversing
+    if(dx===-this.dir.x && dy===-this.dir.y) return;
+    this.nextDir={x:dx,y:dy};
+    if(!this.started) this.start();
+  },
+
+  start: function(){
+    if(this.started||this.gameOver) return;
+    this.started=true;
+    var S=this;
+    S.timer=setInterval(function(){S.step();},S.INTERVAL);
+  },
+
+  step: function(){
+    if(this.gameOver||this.won) return;
+    this.dir = this.nextDir;
+    var head=this.snake[0];
+    var nx=head.x+this.dir.x, ny=head.y+this.dir.y;
+
+    // Wall collision
+    if(nx<0||nx>=this.COLS||ny<0||ny>=this.ROWS){
+      this.endGame(false); return;
+    }
+    // Self collision
+    if(this.snake.some(function(s){return s.x===nx&&s.y===ny;})){
+      this.endGame(false); return;
+    }
+
+    this.snake.unshift({x:nx,y:ny});
+    var ate = this.food && nx===this.food.x && ny===this.food.y;
+    if(ate){
+      this.length++;
+      if(this.length>=this.TARGET){
+        this.won=true;
+        this.endGame(true);
+      } else {
+        this.placeFood();
+      }
+    } else {
+      this.snake.pop();
+    }
+    snRender();
+  },
+
+  endGame: function(won){
+    this.gameOver=true;
+    this.won=won;
+    if(this.timer) clearInterval(this.timer);
+    this.timer=null;
+    snRender();
+    snShowResult(won);
+  }
+};
+
+// ── SNAKE RENDER ─────────────────────────────────────────────────
+function renderSnake(){
+  var card=document.getElementById("card");
+  card.innerHTML="";
+
+  var tag=document.createElement("div");tag.className="q-type";
+  tag.textContent="Raetsel 4 von "+TOTAL+" - Snake";card.appendChild(tag);
+
+  var qt=document.createElement("div");qt.className="q-text";
+  qt.textContent="Erreiche eine Laenge von "+SN.TARGET+" um weiterzukommen!";card.appendChild(qt);
+
+  // Length counter
+  var counter=document.createElement("div");counter.id="sn-counter";
+  counter.style.cssText="text-align:center;font-size:13px;color:var(--gold);margin-bottom:8px;";
+  counter.textContent="Laenge: 3 / "+SN.TARGET;
+  card.appendChild(counter);
+
+  // Canvas
+  var canvas=document.createElement("canvas");canvas.id="sn-canvas";
+  var csize=Math.min(320, Math.floor((window.innerWidth-60)/1)*1);
+  csize=Math.floor(csize/SN.COLS)*SN.COLS;
+  canvas.width=csize;canvas.height=csize;
+  canvas.style.cssText="display:block;margin:0 auto;border-radius:8px;border:1px solid rgba(201,168,76,0.2);background:#111;";
+  card.appendChild(canvas);
+
+  // Status
+  var status=document.createElement("div");status.id="sn-status";
+  status.style.cssText="text-align:center;font-size:13px;color:var(--muted);margin:8px 0 4px;min-height:20px;";
+  status.textContent="Druecke eine Pfeil-Taste zum Starten!";
+  card.appendChild(status);
+
+  // Arrow buttons
+  var arrowWrap=document.createElement("div");
+  arrowWrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px auto;width:fit-content;";
+
+  var topRow=document.createElement("div");topRow.style.cssText="display:flex;justify-content:center;";
+  var midRow=document.createElement("div");midRow.style.cssText="display:flex;gap:4px;";
+
+  function makeArrow(symbol,dx,dy){
+    var b=document.createElement("button");
+    b.textContent=symbol;
+    b.style.cssText="width:48px;height:48px;font-size:20px;background:var(--surface2);border:1.5px solid rgba(201,168,76,0.2);border-radius:10px;color:var(--gold2);cursor:pointer;font-family:sans-serif;";
+    b.addEventListener("click",function(e){e.preventDefault();SN.setDir(dx,dy);snRender();});
+    b.addEventListener("touchstart",function(e){e.preventDefault();SN.setDir(dx,dy);snRender();},{passive:false});
+    return b;
+  }
+
+  topRow.appendChild(makeArrow("▲",0,-1));
+  midRow.appendChild(makeArrow("◀",-1,0));
+  midRow.appendChild(makeArrow("▼",0,1));
+  midRow.appendChild(makeArrow("▶",1,0));
+
+  arrowWrap.appendChild(topRow);
+  arrowWrap.appendChild(midRow);
+  card.appendChild(arrowWrap);
+
+  // Restart button
+  var restartBtn=document.createElement("button");restartBtn.id="sn-restart";
+  restartBtn.className="btn-check";restartBtn.style.cssText="width:100%;margin-top:8px;display:none;";
+  restartBtn.textContent="Nochmal versuchen";
+  restartBtn.addEventListener("click",function(){
+    SN.init();snRender();
+    document.getElementById("sn-status").textContent="Druecke eine Pfeil-Taste zum Starten!";
+    document.getElementById("sn-restart").style.display="none";
+  });
+  card.appendChild(restartBtn);
+
+  // Autofill (test only)
+  var afSn=document.createElement("button");afSn.className="btn-autofill";
+  afSn.textContent="Loesung automatisch einfuellen";
+  afSn.addEventListener("click",function(){
+    SN.length=SN.TARGET;
+    SN.won=true;SN.gameOver=true;
+    if(SN.timer){clearInterval(SN.timer);SN.timer=null;}
+    snRender();snShowResult(true);
+  });
+  card.appendChild(afSn);
+
+  // Next button
+  var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
+  bn.textContent="Weiter ->";bn.addEventListener("click",next);
+  card.appendChild(bn);
+
+  snRender();
+}
+
+function snRender(){
+  var canvas=document.getElementById("sn-canvas");
+  if(!canvas) return;
+  var ctx=canvas.getContext("2d");
+  var cw=canvas.width, ch=canvas.height;
+  var cellW=cw/SN.COLS, cellH=ch/SN.ROWS;
+
+  ctx.fillStyle="#111";ctx.fillRect(0,0,cw,ch);
+
+  // Grid dots
+  ctx.fillStyle="rgba(255,255,255,0.04)";
+  for(var y=0;y<SN.ROWS;y++)
+    for(var x=0;x<SN.COLS;x++)
+      ctx.fillRect(x*cellW+cellW/2-1,y*cellH+cellH/2-1,2,2);
+
+  // Food
+  if(SN.food){
+    ctx.fillStyle="#c9a84c";
+    var fx=SN.food.x*cellW, fy=SN.food.y*cellH;
+    ctx.beginPath();
+    ctx.arc(fx+cellW/2,fy+cellH/2,cellW*0.38,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  // Snake
+  SN.snake.forEach(function(seg,i){
+    var isHead=i===0;
+    ctx.fillStyle=isHead?"#e8c97a":SN.won?"#4caf7d":"#7aad60";
+    var r=isHead?3:2;
+    var x=seg.x*cellW+1, y=seg.y*cellH+1;
+    var w=cellW-2, h=cellH-2;
+    ctx.beginPath();
+    ctx.roundRect(x,y,w,h,r);
+    ctx.fill();
+  });
+
+  // Game over overlay
+  if(SN.gameOver&&!SN.won){
+    ctx.fillStyle="rgba(0,0,0,0.65)";ctx.fillRect(0,0,cw,ch);
+    ctx.fillStyle="#e88888";ctx.font="bold "+Math.floor(cellW*1.2)+"px DM Sans,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("GAME OVER",cw/2,ch/2);
+  }
+  if(SN.won){
+    ctx.fillStyle="rgba(0,0,0,0.55)";ctx.fillRect(0,0,cw,ch);
+    ctx.fillStyle="#7ee8a8";ctx.font="bold "+Math.floor(cellW*1.1)+"px DM Sans,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("GESCHAFFT! 🎉",cw/2,ch/2);
+  }
+
+  // Update counter
+  var counter=document.getElementById("sn-counter");
+  if(counter) counter.textContent="Laenge: "+SN.length+" / "+SN.TARGET;
+}
+
+function snShowResult(won){
+  var status=document.getElementById("sn-status");
+  var restart=document.getElementById("sn-restart");
+  var bn=document.getElementById("bn");
+  if(won){
+    if(status){status.textContent="Super! Laenge "+SN.TARGET+" erreicht!";status.style.color="#7ee8a8";}
+    if(bn) bn.className="btn-next show";
+  } else {
+    if(status){status.textContent="Game Over! Laenge "+SN.length+" / "+SN.TARGET;status.style.color="#e88888";}
+    if(restart) restart.style.display="block";
+  }
+}
+
+// ── KNIFFEL ──────────────────────────────────────────────────────
+var KN = {
+  TARGET: 260,
+  dice: [1,1,1,1,1],
+  held: [false,false,false,false,false],
+  rollsLeft: 3,
+  round: 1,
+  totalRounds: 13,
+  scores: {},
+  upperBonus: false,
+  gameOver: false,
+  won: false,
+
+  CATEGORIES: [
+    {id:'ones',   label:'Einser',       upper:true},
+    {id:'twos',   label:'Zweier',       upper:true},
+    {id:'threes', label:'Dreier',       upper:true},
+    {id:'fours',  label:'Vierer',       upper:true},
+    {id:'fives',  label:'Fuenfer',      upper:true},
+    {id:'sixes',  label:'Sechser',      upper:true},
+    {id:'threeoak',label:'Dreierpasch', upper:false},
+    {id:'fouroak', label:'Viererpasch', upper:false},
+    {id:'fhouse',  label:'Full House',  upper:false},
+    {id:'sstraight',label:'Kl. Strasse',upper:false},
+    {id:'lstraight',label:'Gr. Strasse',upper:false},
+    {id:'kniffel', label:'Kniffel',     upper:false},
+    {id:'chance',  label:'Chance',      upper:false}
+  ],
+
+  init: function(){
+    this.dice=[1,1,1,1,1];
+    this.held=[false,false,false,false,false];
+    this.rollsLeft=3;
+    this.round=1;
+    this.scores={};
+    this.upperBonus=false;
+    this.gameOver=false;
+    this.won=false;
+  },
+
+  roll: function(){
+    if(this.rollsLeft<=0||this.gameOver) return;
+    for(var i=0;i<5;i++){
+      if(!this.held[i]) this.dice[i]=Math.floor(Math.random()*6)+1;
+    }
+    this.rollsLeft--;
+  },
+
+  toggleHold: function(i){
+    if(this.rollsLeft===3||this.rollsLeft===0) return; // must roll first
+    this.held[i]=!this.held[i];
+  },
+
+  calcScore: function(id){
+    var d=this.dice;
+    var counts=[0,0,0,0,0,0];
+    d.forEach(function(v){counts[v-1]++;});
+    var sum=d.reduce(function(a,b){return a+b;},0);
+    switch(id){
+      case 'ones':   return counts[0]*1;
+      case 'twos':   return counts[1]*2;
+      case 'threes': return counts[2]*3;
+      case 'fours':  return counts[3]*4;
+      case 'fives':  return counts[4]*5;
+      case 'sixes':  return counts[5]*6;
+      case 'threeoak': return counts.some(function(c){return c>=3;})?sum:0;
+      case 'fouroak':  return counts.some(function(c){return c>=4;})?sum:0;
+      case 'fhouse':
+        var has3=counts.some(function(c){return c===3;});
+        var has2=counts.some(function(c){return c===2;});
+        return (has3&&has2)?25:0;
+      case 'sstraight':
+        var s=counts.map(function(c){return c>0?1:0;}).join('');
+        return (s.indexOf('1111')>=0)?30:0;
+      case 'lstraight':
+        var s2=counts.map(function(c){return c>0?1:0;}).join('');
+        return (s2==='111110'||s2==='011111')?40:0;
+      case 'kniffel': return counts.some(function(c){return c===5;})?50:0;
+      case 'chance':  return sum;
+    }
+    return 0;
+  },
+
+  enterScore: function(id){
+    if(this.scores[id]!==undefined||this.rollsLeft===3) return false;
+    this.scores[id]=this.calcScore(id);
+    this.round++;
+    this.rollsLeft=3;
+    this.held=[false,false,false,false,false];
+    if(this.round>this.totalRounds){
+      this.gameOver=true;
+      var total=this.getTotal();
+      this.won=total>=this.TARGET;
+    }
+    return true;
+  },
+
+  getUpperSum: function(){
+    var S=this, sum=0;
+    ['ones','twos','threes','fours','fives','sixes'].forEach(function(id){
+      if(S.scores[id]!==undefined) sum+=S.scores[id];
+    });
+    return sum;
+  },
+
+  getTotal: function(){
+    var S=this, sum=0;
+    Object.keys(S.scores).forEach(function(id){sum+=S.scores[id];});
+    var upper=S.getUpperSum();
+    if(upper>=63) sum+=35;
+    return sum;
+  }
+};
+
+// ── KNIFFEL RENDER ───────────────────────────────────────────────
+function renderKniffel(){
+  var card=document.getElementById("card");
+  card.innerHTML="";
+
+  var tag=document.createElement("div");tag.className="q-type";
+  tag.textContent="Raetsel 5 von "+TOTAL+" - Kniffel";card.appendChild(tag);
+
+  var qt=document.createElement("div");qt.className="q-text";
+  qt.textContent="Erreiche mindestens "+KN.TARGET+" Punkte!";card.appendChild(qt);
+
+  // Score summary bar
+  var summary=document.createElement("div");summary.id="kn-summary";
+  summary.style.cssText="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:var(--surface2);border-radius:8px;";
+  card.appendChild(summary);
+
+  // Dice area
+  var diceWrap=document.createElement("div");diceWrap.id="kn-dice";
+  diceWrap.style.cssText="display:flex;justify-content:center;gap:8px;margin-bottom:12px;";
+  card.appendChild(diceWrap);
+
+  // Roll button
+  var rollBtn=document.createElement("button");rollBtn.id="kn-roll";
+  rollBtn.style.cssText="width:100%;padding:13px;background:linear-gradient(135deg,#c9a84c,#e8c97a);border:none;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;color:#0d0d0d;font-family:'DM Sans',sans-serif;margin-bottom:14px;";
+  rollBtn.textContent="Wuerfeln (3 verbleibend)";
+  rollBtn.addEventListener("click",function(){
+    KN.roll();knRefresh();
+  });
+  card.appendChild(rollBtn);
+
+  // Scoresheet
+  var sheet=document.createElement("div");sheet.id="kn-sheet";
+  sheet.style.cssText="display:flex;flex-direction:column;gap:2px;";
+  card.appendChild(sheet);
+
+  // Autofill (test only)
+  var afKn=document.createElement("button");afKn.className="btn-autofill";
+  afKn.textContent="Loesung automatisch einfuellen (260+ Punkte)";
+  afKn.addEventListener("click",knAutoSolve);
+  card.appendChild(afKn);
+
+  // Next button
+  var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
+  bn.textContent="Weiter ->";bn.addEventListener("click",next);
+  card.appendChild(bn);
+
+  knRefresh();
+}
+
+function knRefresh(){
+  knRenderDice();
+  knRenderSheet();
+  knRenderSummary();
+  // Update roll button
+  var rb=document.getElementById("kn-roll");
+  if(!rb) return;
+  if(KN.gameOver){
+    rb.style.display="none";
+    return;
+  }
+  if(KN.rollsLeft===0){
+    rb.textContent="Keine Wuerfe mehr - waehle eine Kategorie";
+    rb.style.opacity="0.4";
+    rb.style.cursor="default";
+  } else if(KN.rollsLeft===3){
+    rb.textContent="Wuerfeln";
+    rb.style.opacity="1";rb.style.cursor="pointer";
+  } else {
+    rb.textContent="Nochmal wuerfeln ("+KN.rollsLeft+" verbleibend)";
+    rb.style.opacity="1";rb.style.cursor="pointer";
+  }
+}
+
+function knRenderDice(){
+  var wrap=document.getElementById("kn-dice");
+  if(!wrap) return;
+  wrap.innerHTML="";
+  var faces=["","⚀","⚁","⚂","⚃","⚄","⚅"];
+  KN.dice.forEach(function(val,i){
+    var die=document.createElement("div");
+    var held=KN.held[i];
+    die.textContent=faces[val];
+    die.style.cssText=[
+      "width:48px;height:48px;",
+      "display:flex;align-items:center;justify-content:center;",
+      "font-size:34px;border-radius:10px;cursor:pointer;",
+      "border:2px solid "+(held?"#c9a84c":"rgba(255,255,255,0.1)"),";",
+      "background:"+(held?"rgba(201,168,76,0.15)":"var(--surface2)"),";",
+      "transition:all 0.15s;",
+      "user-select:none;"
+    ].join("");
+    (function(idx){
+      die.addEventListener("click",function(){
+        KN.toggleHold(idx);knRenderDice();
+      });
+    })(i);
+    if(KN.rollsLeft===3) die.style.opacity="0.4";
+    wrap.appendChild(die);
+  });
+}
+
+function knRenderSheet(){
+  var sheet=document.getElementById("kn-sheet");
+  if(!sheet) return;
+  sheet.innerHTML="";
+
+  var upperSum=KN.getUpperSum();
+  var bonusNeeded=Math.max(0,63-upperSum);
+
+  // Section header
+  function makeHeader(txt){
+    var h=document.createElement("div");
+    h.style.cssText="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:6px 0 2px;opacity:0.8;";
+    h.textContent=txt;sheet.appendChild(h);
+  }
+
+  makeHeader("Oberer Block");
+  KN.CATEGORIES.filter(function(c){return c.upper;}).forEach(function(cat){
+    knMakeRow(sheet, cat);
+  });
+
+  // Upper bonus row
+  var bonusRow=document.createElement("div");
+  bonusRow.style.cssText="display:flex;justify-content:space-between;padding:5px 8px;background:var(--surface2);border-radius:6px;margin:2px 0;font-size:12px;color:var(--muted);";
+  var bonusLabel=document.createElement("span");bonusLabel.textContent="Bonus (>=63 Pkt)";
+  var bonusVal=document.createElement("span");
+  if(upperSum>=63){
+    bonusVal.textContent="+35";bonusVal.style.color="#7ee8a8";
+  } else {
+    bonusVal.textContent="Noch "+bonusNeeded+" Pkt";bonusVal.style.color="var(--muted)";
+  }
+  bonusRow.appendChild(bonusLabel);bonusRow.appendChild(bonusVal);
+  sheet.appendChild(bonusRow);
+
+  makeHeader("Unterer Block");
+  KN.CATEGORIES.filter(function(c){return !c.upper;}).forEach(function(cat){
+    knMakeRow(sheet, cat);
+  });
+}
+
+function knMakeRow(sheet, cat){
+  var scored=KN.scores[cat.id]!==undefined;
+  var preview=!scored&&KN.rollsLeft<3?KN.calcScore(cat.id):null;
+  var canClick=!scored&&!KN.gameOver&&KN.rollsLeft<3;
+
+  var row=document.createElement("div");
+  row.style.cssText=[
+    "display:flex;justify-content:space-between;align-items:center;",
+    "padding:6px 8px;border-radius:6px;margin:2px 0;",
+    "font-size:13px;cursor:"+(canClick?"pointer":"default")+";",
+    "background:"+(scored?"rgba(76,175,125,0.08)":"var(--surface2)")+";",
+    "border:1px solid "+(canClick&&preview>0?"rgba(201,168,76,0.3)":"transparent")+";"
+  ].join("");
+
+  var label=document.createElement("span");
+  label.textContent=cat.label;
+  label.style.color=scored?"var(--cream)":"var(--text)";
+
+  var valEl=document.createElement("span");
+  if(scored){
+    valEl.textContent=KN.scores[cat.id];
+    valEl.style.cssText="font-weight:600;color:"+(KN.scores[cat.id]>0?"#7ee8a8":"var(--muted)")+";";
+  } else if(preview!==null){
+    valEl.textContent=preview>0?"+"+preview:"0";
+    valEl.style.cssText="color:"+(preview>0?"rgba(201,168,76,0.8)":"var(--muted)")+";font-size:12px;";
+  } else {
+    valEl.textContent="-";valEl.style.color="var(--muted)";
+  }
+
+  row.appendChild(label);row.appendChild(valEl);
+
+  if(canClick){
+    (function(id){
+      row.addEventListener("click",function(){
+        if(KN.enterScore(id)){
+          knRefresh();
+          if(KN.gameOver) knShowResult();
+        }
+      });
+      row.addEventListener("mouseenter",function(){
+        if(canClick) row.style.background="rgba(201,168,76,0.1)";
+      });
+      row.addEventListener("mouseleave",function(){
+        row.style.background=scored?"rgba(76,175,125,0.08)":"var(--surface2)";
+      });
+    })(cat.id);
+  }
+  sheet.appendChild(row);
+}
+
+function knRenderSummary(){
+  var el=document.getElementById("kn-summary");
+  if(!el) return;
+  var total=KN.getTotal();
+  var round=Math.min(KN.round, KN.totalRounds);
+  el.innerHTML=
+    "<span>Runde: <strong style='color:var(--gold2)'>"+round+" / "+KN.totalRounds+"</strong></span>"+
+    "<span>Punkte: <strong style='color:"+(total>=KN.TARGET?"#7ee8a8":"var(--gold2)")+"'>"+total+" / "+KN.TARGET+"</strong></span>";
+}
+
+function knShowResult(){
+  var total=KN.getTotal();
+  var bn=document.getElementById("bn");
+  var rb=document.getElementById("kn-roll");
+  if(rb) rb.style.display="none";
+
+  // Show result card
+  var card=document.getElementById("card");
+  var resultDiv=document.createElement("div");
+  resultDiv.className="feedback show "+(KN.won?"ok":"nope");
+  resultDiv.style.marginTop="12px";
+  if(KN.won){
+    resultDiv.textContent="Super! "+total+" Punkte - Ziel von "+KN.TARGET+" erreicht!";
+    if(bn) bn.className="btn-next show";
+  } else {
+    resultDiv.textContent="Leider nur "+total+" Punkte. Ziel: "+KN.TARGET+". Versuche es nochmal!";
+    // Restart button
+    var restart=document.createElement("button");
+    restart.className="btn-check";restart.style.cssText="width:100%;margin-top:10px;";
+    restart.textContent="Nochmal spielen";
+    restart.addEventListener("click",function(){
+      KN.init();renderKniffel();
+    });
+    card.appendChild(resultDiv);
+    card.appendChild(restart);
+    return;
+  }
+  card.appendChild(resultDiv);
+}
+
+function knAutoSolve(){
+  // Fill max possible scores
+  KN.scores={
+    ones:3,twos:8,threes:12,fours:16,fives:20,sixes:18,
+    threeoak:26,fouroak:27,fhouse:25,sstraight:30,lstraight:40,kniffel:50,chance:29
+  };
+  KN.round=14;KN.gameOver=true;KN.won=true;
+  knRefresh();knShowResult();
+}
+
+// ── QUIZ DATA ────────────────────────────────────────────────────
+var qs=[];
+
+var TOTAL = 6; // sudoku+crossword+battleship+snake+kniffel+caesar
+var cur = 0; // 0 = sudoku, 1..7 = quiz
+var locked = false;
+
+// ── NAVIGATION ───────────────────────────────────────────────────
+function goTo(id){
+  ["intro","quiz","final"].forEach(function(s){document.getElementById(s).style.display="none";});
+  var el=document.getElementById(id);
+  if(id==="intro"){el.style.display="flex";}
+  else if(id==="quiz"){el.style.display="block";}
+  else if(id==="final"){el.style.cssText="display:flex;flex-direction:column;align-items:center;padding:50px 0 60px;min-height:100vh;";}
+  window.scrollTo(0,0);
+}
+
+function updateProgress(){
+  document.getElementById("progNum").textContent=cur+" / "+TOTAL;
+  document.getElementById("progFill").style.width=((cur-1)/TOTAL*100)+"%";
+}
+
+// ── SUDOKU ───────────────────────────────────────────────────────
+var grid = []; // user's current board (copy of PUZZLE)
+var selected = null; // {r,c}
+
+function initGrid(){
+  grid = [];
+  for(var r=0;r<9;r++){
+    grid.push(PUZZLE[r].slice());
+  }
+}
+
+function renderSudoku(){
+  var card = document.getElementById("card");
+  card.innerHTML = "";
+
+  var tag=document.createElement("div");tag.className="q-type";tag.textContent="Raetsel 1 von "+TOTAL+" - Sudoku";card.appendChild(tag);
+  var qt=document.createElement("div");qt.className="q-text";qt.textContent="Loes das Sudoku komplett richtig, um weiterzukommen!";card.appendChild(qt);
+
+  var wrap=document.createElement("div");wrap.className="sudoku-wrap";
+
+  // Grid
+  var gridEl=document.createElement("div");gridEl.className="sudoku-grid";gridEl.id="sudokuGrid";
+
+  for(var r=0;r<9;r++){
+    for(var c=0;c<9;c++){
+      var cell=document.createElement("button");
+      cell.className="cell";
+      // thick box borders
+      if(c===2||c===5) cell.classList.add("box-right");
+      if(r===2||r===5) cell.classList.add("box-bottom");
+
+      var val=grid[r][c];
+      if(PUZZLE[r][c]!==0){
+        cell.classList.add("given");
+        cell.textContent=val;
+        cell.disabled=true;
+      } else {
+        cell.textContent=val===0?"":val;
+        (function(row,col){
+          cell.addEventListener("click",function(){selectCell(row,col);});
+        })(r,c);
+      }
+      cell.id="cell-"+r+"-"+c;
+      gridEl.appendChild(cell);
+    }
+  }
+  wrap.appendChild(gridEl);
+
+  // Error/ok message
+  var msg=document.createElement("div");msg.id="sudoku-msg";msg.className="sudoku-err";wrap.appendChild(msg);
+
+  // Numpad
+  var numpad=document.createElement("div");numpad.className="numpad";
+  for(var n=1;n<=9;n++){
+    var nb=document.createElement("button");nb.textContent=n;
+    (function(num){nb.addEventListener("click",function(){enterNum(num);});})(n);
+    numpad.appendChild(nb);
+  }
+  wrap.appendChild(numpad);
+
+  // Delete + Check buttons
+  var row2=document.createElement("div");row2.style.cssText="display:flex;gap:10px;width:100%;max-width:340px;";
+  var delBtn=document.createElement("button");delBtn.className="btn-check";delBtn.style.flex="1";delBtn.textContent="Loeschen";
+  delBtn.addEventListener("click",function(){enterNum(0);});
+  var checkBtn=document.createElement("button");checkBtn.className="btn-gold";checkBtn.style.cssText="flex:2;border-radius:10px;padding:14px;";checkBtn.textContent="Loesung pruefen";
+  checkBtn.addEventListener("click",checkSudoku);
+  row2.appendChild(delBtn);row2.appendChild(checkBtn);
+  wrap.appendChild(row2);
+
+  var afBtn=document.createElement("button");afBtn.className="btn-autofill";afBtn.textContent="Loesung automatisch einfuellen";
+  afBtn.addEventListener("click",function(){
+    for(var r=0;r<9;r++){for(var c=0;c<9;c++){
+      if(PUZZLE[r][c]===0){
+        grid[r][c]=SOLUTION[r][c];
+        var el=document.getElementById("cell-"+r+"-"+c);
+        if(el){el.textContent=SOLUTION[r][c];el.classList.remove("error");}
+      }
+    }}
+    document.getElementById("sudoku-msg").textContent="";
+    selected=null;
+  });
+  wrap.appendChild(afBtn);
+
+  var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";bn.textContent="Weiter ->";
+  bn.addEventListener("click",next);
+  wrap.appendChild(bn);
+
+  card.appendChild(wrap);
+}
+
+function selectCell(r,c){
+  if(PUZZLE[r][c]!==0)return;
+  selected={r:r,c:c};
+  // clear all selected
+  for(var i=0;i<9;i++)for(var j=0;j<9;j++){
+    var el=document.getElementById("cell-"+i+"-"+j);
+    if(el) el.classList.remove("selected");
+  }
+  document.getElementById("cell-"+r+"-"+c).classList.add("selected");
+}
+
+function enterNum(num){
+  if(!selected)return;
+  var r=selected.r, c=selected.c;
+  if(PUZZLE[r][c]!==0)return;
+  grid[r][c]=num;
+  var el=document.getElementById("cell-"+r+"-"+c);
+  el.textContent=num===0?"":num;
+  el.classList.remove("error");
+  document.getElementById("sudoku-msg").textContent="";
+}
+
+function checkSudoku(){
+  // check all cells filled
+  for(var r=0;r<9;r++){
+    for(var c=0;c<9;c++){
+      if(grid[r][c]===0){
+        document.getElementById("sudoku-msg").textContent="Das Sudoku ist noch nicht vollstaendig ausgefuellt!";
+        return;
+      }
+    }
+  }
+  // check correctness, highlight errors
+  var allOk=true;
+  for(var r=0;r<9;r++){
+    for(var c=0;c<9;c++){
+      var el=document.getElementById("cell-"+c+"-"+(r*9+c));
+      var cell=document.getElementById("cell-"+r+"-"+c);
+      if(grid[r][c]!==SOLUTION[r][c]){
+        allOk=false;
+        if(PUZZLE[r][c]===0) cell.classList.add("error");
+      } else {
+        if(PUZZLE[r][c]===0) cell.classList.remove("error");
+      }
+    }
+  }
+  var msg=document.getElementById("sudoku-msg");
+  if(allOk){
+    msg.className="sudoku-ok";
+    msg.textContent="Perfekt geloest! Weiter gehts!";
+    document.getElementById("bn").className="btn-next show";
+  } else {
+    msg.className="sudoku-err";
+    msg.textContent="Noch nicht ganz richtig - die roten Felder stimmen nicht!";
+  }
+}
+
+// ── QUIZ RENDER ──────────────────────────────────────────────────
+function render(){
+  locked=false;
+  updateProgress();
+
+  if(cur===0){
+    renderSudoku();
+    return;
+  }
+  if(cur===1){
+    initCrossword();
+    renderCrossword();
+    return;
+  }
+  if(cur===2){
+    BS.init();
+    renderBattleship();
+    return;
+  }
+  if(cur===3){
+    SN.init();
+    renderSnake();
+    return;
+  }
+  if(cur===4){
+    KN.init();
+    renderKniffel();
+    return;
+  }
+  if(cur===5){
+    renderCaesar();
+    return;
+  }
+
+  var q=qs[cur-5];
+  var card=document.getElementById("card");
+  card.innerHTML="";
+
+  var d1=document.createElement("div");d1.className="q-type";d1.textContent="Raetsel "+(cur+1)+" von "+TOTAL+" - "+q.tag;card.appendChild(d1);
+  var d2=document.createElement("div");d2.className="q-text";d2.textContent=q.q;card.appendChild(d2);
+
+  // AUTOFILL BUTTON (test only)
+  (function(qq){
+    var afQ=document.createElement("button");afQ.className="btn-autofill";afQ.textContent="Autofill";
+    afQ.addEventListener("click",function(){
+      if(qq.type==="mc"){
+        checkMC(qq.correct);
+      } else {
+        var inp=document.getElementById("inp");
+        if(inp){inp.value=qq.correct[0];checkTxt();}
+      }
+    });
+    card.appendChild(afQ);
+  })(q);
+
+  if(q.type==="mc"){
+    var wrap=document.createElement("div");wrap.className="choices";
+    q.choices.forEach(function(c,i){
+      var b=document.createElement("button");b.className="choice";b.textContent=c;
+      (function(idx){b.addEventListener("click",function(){checkMC(idx);});})(i);
+      wrap.appendChild(b);
+    });
+    card.appendChild(wrap);
+  } else {
+    var w2=document.createElement("div");w2.className="input-wrap";
+    var inp=document.createElement("input");inp.type="text";inp.className="text-input";inp.id="inp";inp.placeholder="Deine Antwort...";
+    var bc=document.createElement("button");bc.className="btn-check";bc.textContent="Antwort pruefen";
+    bc.addEventListener("click",checkTxt);
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter")checkTxt();});
+    w2.appendChild(inp);w2.appendChild(bc);card.appendChild(w2);
+    if(q.hint){var h=document.createElement("div");h.className="hint";h.textContent=q.hint;card.appendChild(h);}
+    setTimeout(function(){inp.focus();},80);
+  }
+
+  var fb=document.createElement("div");fb.className="feedback";fb.id="fb";card.appendChild(fb);
+
+  // AUTOFILL BUTTON (test only) - placed after feedback, uses q captured correctly
+  (function(qq){
+    var afQ=document.createElement("button");afQ.className="btn-autofill";afQ.textContent="Loesung automatisch einfuellen";
+    afQ.addEventListener("click",function(){
+      if(locked) return;
+      if(qq.type==="mc"){
+        // choices exist in DOM now
+        checkMC(qq.correct);
+      } else {
+        var inp=document.getElementById("inp");
+        if(inp && Array.isArray(qq.correct) && qq.correct.length>0){
+          inp.value=qq.correct[0];
+          checkTxt();
+        }
+      }
+    });
+    card.appendChild(afQ);
+  })(q);
+
+  var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
+  bn.textContent=cur<TOTAL-1?"Weiter ->":"Geschenk enthuellen!";
+  bn.addEventListener("click",next);
+  card.appendChild(bn);
+}
+
+function showFB(ok,text){
+  var fb=document.getElementById("fb");
+  fb.className="feedback show "+(ok?"ok":"nope");
+  fb.textContent=text;
+  document.getElementById("bn").className="btn-next show";
+}
+
+function checkMC(i){
+  if(locked)return;locked=true;
+  var q=qs[cur-5];
+  var btns=document.querySelectorAll(".choice");
+  btns.forEach(function(b){b.style.pointerEvents="none";});
+  btns[i].className="choice "+(i===q.correct?"correct":"wrong");
+  if(i!==q.correct)btns[q.correct].className="choice correct";
+  showFB(i===q.correct,i===q.correct?q.fb:"Nicht ganz - aber kein Problem! "+q.fb);
+}
+
+function checkTxt(){
+  if(locked)return;
+  var inp=document.getElementById("inp");
+  var val=(inp.value||"").trim().toLowerCase();
+  if(!val)return;
+  locked=true;
+  var q=qs[cur-5];
+  var ok=q.correct.some(function(a){return val===a||val.indexOf(a)>=0||a.indexOf(val)>=0;});
+  inp.className="text-input "+(ok?"correct":"wrong");
+  showFB(ok,ok?q.fb:"Fast! Die Antwort war: "+q.correct[0]+" - "+q.fb);
+}
+
+function next(){
+  cur++;
+  if(cur>=TOTAL)goTo("final");
+  else render();
+}
+
+
+// ── CROSSWORD DATA ───────────────────────────────────────────────
+// Each entry: word, clue, solPos (index in word of the solution letter)
+// Solution letters: G,E,B,U,R,T,S,T,A,G = GEBURTSTAG
+var CW_WORDS = [
+  {word:"GOLF",       solPos:0, clue:"Automarke - bekanntes VW-Modell"},
+  {word:"INDONESIEN", solPos:5, clue:"FJs Lieblingsland"},
+  {word:"OBERSTDORF", solPos:1, clue:"Geburtsort von FJ"},
+  {word:"TARSUS",     solPos:4, clue:"Fachbegriff fuer die Fusswurzelknochen"},
+  {word:"FORCHETTA",  solPos:2, clue:"Gabel auf Italienisch"},
+  {word:"TOYOTA",     solPos:0, clue:"Japanische Automarke"},
+  {word:"AMEISEN",    solPos:4, clue:"Nervige Mitbewohner"},
+  {word:"ATLAS",      solPos:1, clue:"Erster Halswirbel (Physio-Wissen!)"},
+  {word:"ACHILLES",   solPos:0, clue:"Die staerkste Sehne des Koerpers"},
+  {word:"GRAZ",       solPos:0, clue:"Lisas Wohnort - Landeshauptstadt der Steiermark"}
+];
+var CW_SOLUTION = "GEBURTSTAG";
+var cwState = [];
+
+function initCrossword(){
+  cwState = CW_WORDS.map(function(w){
+    return w.word.split("").map(function(){ return ""; });
+  });
+}
+
+function renderCrossword(){
+  var card = document.getElementById("card");
+  card.innerHTML = "";
+
+  var tag=document.createElement("div");tag.className="q-type";
+  tag.textContent="Raetsel 2 von "+TOTAL+" - Schwedenraetsel";card.appendChild(tag);
+
+  var qtCw=document.createElement("div");qtCw.className="q-text";
+  qtCw.textContent="Fuelle alle Woerter aus. Die goldene Spalte ergibt das Loesungswort!";
+  card.appendChild(qtCw);
+
+  var cwWrap=document.createElement("div");cwWrap.id="cwWrap";
+  cwWrap.style.cssText="display:flex;flex-direction:column;gap:10px;width:100%;";
+
+  var maxLen = 0;
+  CW_WORDS.forEach(function(w){ if(w.word.length>maxLen) maxLen=w.word.length; });
+
+  CW_WORDS.forEach(function(wordObj, wi){
+    var rowDiv=document.createElement("div");
+    rowDiv.style.cssText="display:flex;align-items:center;gap:4px;";
+
+    // Row number
+    var numEl=document.createElement("div");
+    numEl.style.cssText="min-width:18px;font-size:11px;color:var(--muted);text-align:right;";
+    numEl.textContent=(wi+1)+".";
+    rowDiv.appendChild(numEl);
+
+    // Cells
+    var cellsDiv=document.createElement("div");
+    cellsDiv.style.cssText="display:flex;gap:3px;";
+
+    for(var ci=0;ci<wordObj.word.length;ci++){
+      var inp=document.createElement("input");
+      inp.type="text";
+      inp.maxLength=1;
+      inp.dataset.wi=wi;
+      inp.dataset.ci=ci;
+      inp.id="cw-"+wi+"-"+ci;
+
+      var isSolCol = (ci===wordObj.solPos);
+      inp.style.cssText=[
+        "width:clamp(24px,7vw,32px);height:clamp(24px,7vw,32px);",
+        "text-align:center;",
+        "font-size:clamp(11px,3vw,14px);font-weight:600;",
+        "font-family:'DM Sans',sans-serif;",
+        "border-radius:6px;",
+        "outline:none;",
+        "text-transform:uppercase;",
+        isSolCol
+          ? "background:rgba(201,168,76,0.18);border:2px solid rgba(201,168,76,0.6);color:var(--gold2);"
+          : "background:var(--surface2);border:1.5px solid rgba(255,255,255,0.08);color:var(--cream);"
+      ].join("");
+
+      inp.value = (cwState[wi] && cwState[wi][ci]) ? cwState[wi][ci] : "";
+
+      (function(w2,c2,nextWi,nextCi){
+        inp.addEventListener("input",function(){
+          var v=this.value.replace(/[^a-zA-Z]/g,"").toUpperCase().slice(-1);
+          this.value=v;
+          cwState[w2][c2]=v;
+          // auto-advance
+          if(v){
+            var nxtCi=c2+1;
+            if(nxtCi<CW_WORDS[w2].word.length){
+              var nx=document.getElementById("cw-"+w2+"-"+nxtCi);
+              if(nx)nx.focus();
+            }
+          }
+        });
+        inp.addEventListener("keydown",function(e){
+          if(e.key==="Backspace"&&this.value===""){
+            var pci=c2-1;
+            if(pci>=0){var px=document.getElementById("cw-"+w2+"-"+pci);if(px){px.focus();px.value="";cwState[w2][pci]="";}}
+          }
+        });
+      })(wi,ci);
+
+      cellsDiv.appendChild(inp);
+    }
+
+    // Clue
+    var clueEl=document.createElement("div");
+    clueEl.style.cssText="font-size:12px;color:var(--muted);line-height:1.3;padding-left:6px;flex:1;";
+    clueEl.textContent=wordObj.clue;
+
+    rowDiv.appendChild(cellsDiv);
+    rowDiv.appendChild(clueEl);
+    cwWrap.appendChild(rowDiv);
+  });
+
+  card.appendChild(cwWrap);
+
+  // Solution word display
+  var solDiv=document.createElement("div");
+  solDiv.style.cssText="margin-top:16px;display:flex;align-items:center;gap:8px;";
+  var solLabel=document.createElement("div");
+  solLabel.style.cssText="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);min-width:100px;";
+  solLabel.textContent="Loesungswort:";
+  solDiv.appendChild(solLabel);
+  var solCells=document.createElement("div");
+  solCells.style.cssText="display:flex;gap:3px;";
+  for(var si=0;si<CW_SOLUTION.length;si++){
+    var sc=document.createElement("div");
+    sc.id="sol-"+si;
+    sc.style.cssText="width:clamp(22px,6vw,28px);height:clamp(22px,6vw,28px);background:rgba(201,168,76,0.12);border:1.5px solid rgba(201,168,76,0.3);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,13px);font-weight:700;color:var(--gold2);font-family:'DM Sans',sans-serif;";
+    sc.textContent="";
+    solCells.appendChild(sc);
+  }
+  solDiv.appendChild(solCells);
+  card.appendChild(solDiv);
+
+  // live update solution word as user types
+  function updateSolutionDisplay(){
+    for(var i=0;i<CW_SOLUTION.length;i++){
+      var el=document.getElementById("sol-"+i);
+      if(el) el.textContent = cwState[i][CW_WORDS[i].solPos]||"";
+    }
+  }
+  // patch solPos inputs to update solution
+  CW_WORDS.forEach(function(w,wi){
+    var inpSol=document.getElementById("cw-"+wi+"-"+w.solPos);
+    if(inpSol) inpSol.addEventListener("input",updateSolutionDisplay);
+  });
+
+  // msg + check button
+  var msg=document.createElement("div");msg.id="cw-msg";msg.className="feedback";msg.style.marginTop="12px";card.appendChild(msg);
+
+  var checkBtn=document.createElement("button");checkBtn.className="btn-check";
+  checkBtn.style.cssText="margin-top:12px;width:100%;";
+  checkBtn.textContent="Loesung pruefen";
+  checkBtn.addEventListener("click",checkCrossword);
+  card.appendChild(checkBtn);
+
+  var afBtnCw2=document.createElement("button");afBtnCw2.className="btn-autofill";
+  afBtnCw2.style.marginTop="8px";
+  afBtnCw2.textContent="Loesung automatisch einfuellen";
+  afBtnCw2.addEventListener("click",function(){
+    CW_WORDS.forEach(function(w,wi){
+      w.word.split("").forEach(function(ch,ci){
+        cwState[wi][ci]=ch;
+        var inp=document.getElementById("cw-"+wi+"-"+ci);
+        if(inp)inp.value=ch;
+      });
+    });
+    for(var i=0;i<CW_SOLUTION.length;i++){
+      var el=document.getElementById("sol-"+i);
+      if(el)el.textContent=CW_WORDS[i].word[CW_WORDS[i].solPos];
+    }
+  });
+  card.appendChild(afBtnCw2);
+
+  var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
+  bn.textContent="Weiter ->";
+  bn.addEventListener("click",next);
+  card.appendChild(bn);
+}
+
+function checkCrossword(){
+  var allFilled=true;
+  var errors=[];
+
+  CW_WORDS.forEach(function(wordObj,wi){
+    var entered=cwState[wi].join("").toUpperCase();
+    var correct=wordObj.word.toUpperCase();
+    if(entered.length<correct.length||entered.indexOf("")>=0) allFilled=false;
+    for(var ci=0;ci<correct.length;ci++){
+      var inp=document.getElementById("cw-"+wi+"-"+ci);
+      if(!inp) continue;
+      var entChar=(cwState[wi][ci]||"").toUpperCase();
+      if(entChar===correct[ci]){
+        inp.style.borderColor="#4caf7d";
+        inp.style.color="#7ee8a8";
+      } else {
+        inp.style.borderColor="#c95050";
+        inp.style.color="#e88888";
+        errors.push(wi);
+      }
+    }
+  });
+
+  var msg=document.getElementById("cw-msg");
+  if(errors.length===0){
+    // check solution word
+    var solWord=CW_WORDS.map(function(w,wi){return cwState[wi][w.solPos]||"";}).join("").toUpperCase();
+    if(solWord===CW_SOLUTION){
+      msg.className="feedback show ok";
+      msg.textContent="Perfekt! Das Loesungswort lautet: GEBURTSTAG! Weiter gehts!";
+      document.getElementById("bn").className="btn-next show";
+    } else {
+      msg.className="feedback show nope";
+      msg.textContent="Fast! Alle Woerter stimmen, aber pruefe nochmal die erste Spalte.";
+    }
+  } else {
+    msg.className="feedback show nope";
+    msg.textContent="Noch nicht ganz - die rot markierten Felder stimmen nicht!";
+  }
+}
+
+// ── BOOT ────────────────────────────────────────────────────────
+initGrid();
+initCrossword();
+goTo("intro");
+document.getElementById("btnStart").addEventListener("click",function(){
+  cur=0;
+  goTo("quiz");
+  render();
+});
+
+// ── CAESAR RENDER ────────────────────────────────────────────────
+function renderCaesar(){
+  var card=document.getElementById("card");
+  card.innerHTML="";
+
+  var tag=document.createElement("div");tag.className="q-type";
+  tag.textContent="Raetsel 6 von "+TOTAL+" - Geheimcode";card.appendChild(tag);
+
+  var qt=document.createElement("div");qt.className="q-text";
+  qt.textContent="Entschluessele die Botschaft und finde das Reiseziel!";card.appendChild(qt);
+
+  // Encoded message display
+  var msgBox=document.createElement("div");
+  msgBox.style.cssText="background:var(--surface2);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:20px;margin-bottom:16px;text-align:center;";
+
+  var msgLabel=document.createElement("div");
+  msgLabel.style.cssText="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;";
+  msgLabel.textContent="Verschluesselte Nachricht (Caesar +7):";
+  msgBox.appendChild(msgLabel);
+
+  var msgText=document.createElement("div");
+  msgText.style.cssText="font-family:'Playfair Display',serif;font-size:clamp(20px,6vw,28px);letter-spacing:6px;color:var(--gold2);font-weight:700;margin-bottom:16px;";
+  msgText.textContent="DPY MHOYLU UHJO DPLU";
+  msgBox.appendChild(msgText);
+
+  // Alphabet decoder wheel
+  var decoderLabel=document.createElement("div");
+  decoderLabel.style.cssText="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;";
+  decoderLabel.textContent="Schluesseltabelle (verschluesselt → original):";
+  msgBox.appendChild(decoderLabel);
+
+  var tableWrap=document.createElement("div");
+  tableWrap.style.cssText="display:flex;flex-direction:column;gap:3px;font-family:monospace;font-size:11px;";
+
+  var alpha="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var shifted="HIJKLMNOPQRSTUVWXYZABCDEFG";
+
+  // Split into 2 rows of 13 for mobile
+  for(var row=0;row<2;row++){
+    var rowEl=document.createElement("div");
+    rowEl.style.cssText="display:flex;gap:2px;justify-content:center;";
+    for(var i=row*13;i<row*13+13;i++){
+      var pair=document.createElement("div");
+      pair.style.cssText="display:flex;flex-direction:column;align-items:center;width:20px;";
+      var top=document.createElement("span");top.style.cssText="color:var(--gold);font-size:10px;";top.textContent=shifted[i];
+      var bot=document.createElement("span");bot.style.cssText="color:var(--text);font-size:10px;border-top:1px solid rgba(255,255,255,0.15);padding-top:1px;";bot.textContent=alpha[i];
+      pair.appendChild(top);pair.appendChild(bot);
+      rowEl.appendChild(pair);
+    }
+    tableWrap.appendChild(rowEl);
+  }
+  msgBox.appendChild(tableWrap);
+  card.appendChild(msgBox);
+
+  // Hint
+  var hint=document.createElement("div");
+  hint.style.cssText="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:12px;text-align:center;";
+  hint.textContent="Tipp: Jeder Buchstabe wurde um 7 Stellen nach vorne verschoben.";
+  card.appendChild(hint);
+
+  // Input
+  var inputWrap=document.createElement("div");inputWrap.className="input-wrap";
+  var inp=document.createElement("input");inp.type="text";inp.className="text-input";
+  inp.id="ca-inp";inp.placeholder="Reiseziel eingeben...";
+  inp.style.textTransform="capitalize";
+
+  var checkBtn=document.createElement("button");checkBtn.className="btn-check";
+  checkBtn.textContent="Antwort pruefen";
+  checkBtn.addEventListener("click",checkCaesar);
+  inp.addEventListener("keydown",function(e){if(e.key==="Enter")checkCaesar();});
+
+  inputWrap.appendChild(inp);inputWrap.appendChild(checkBtn);
+  card.appendChild(inputWrap);
+
+  var fb=document.createElement("div");fb.className="feedback";fb.id="ca-fb";card.appendChild(fb);
+
+  // Autofill (test only)
+  var afCa=document.createElement("button");afCa.className="btn-autofill";
+  afCa.textContent="Loesung automatisch einfuellen";
+  afCa.addEventListener("click",function(){
+    var inp=document.getElementById("ca-inp");
+    if(inp){inp.value="Wien";checkCaesar();}
+  });
+  card.appendChild(afCa);
+
+  var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
+  bn.textContent="Geschenk enthuellen!";
+  bn.addEventListener("click",next);
+  card.appendChild(bn);
+
+  setTimeout(function(){inp.focus();},80);
+}
+
+function checkCaesar(){
+  var inp=document.getElementById("ca-inp");
+  var fb=document.getElementById("ca-fb");
+  var bn=document.getElementById("bn");
+  if(!inp||!fb) return;
+  var val=inp.value.trim().toLowerCase();
+  var ok=(val==="wien"||val==="nach wien"||val==="wir fahren nach wien");
+  inp.className="text-input "+(ok?"correct":"wrong");
+  fb.className="feedback show "+(ok?"ok":"nope");
+  if(ok){
+    fb.textContent="Richtig! Das Reiseziel ist WIEN! Wir fahren zusammen nach Wien! Ich freue mich riesig! Enthuell jetzt dein Geschenk!";
+    if(bn) bn.className="btn-next show";
+  } else {
+    fb.textContent="Nicht ganz! Schau nochmal auf die Schluesseltabelle - jeder Buchstabe der codierten Nachricht entspricht dem Buchstaben darunter.";
+  }
+}
+
+}());
+</script>
+</body>
+</html>
