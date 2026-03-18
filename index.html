@@ -59,8 +59,6 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(30px,8vw,42px);line-heig
 .t-code{font-size:12px;color:var(--muted)}
 .t-code span{color:var(--gold2);font-family:monospace;font-size:13px}
 .heart{text-align:center;font-size:30px;margin-top:26px}
-.btn-autofill{display:block;margin-bottom:16px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.35);border-radius:8px;padding:7px 14px;color:var(--gold2);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%}
-.btn-autofill:active{background:rgba(201,168,76,0.3)}
 
 /* SUDOKU */
 .sudoku-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -123,7 +121,6 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(30px,8vw,42px);line-heig
 (function(){
 
 // ── SUDOKU DATA ──────────────────────────────────────────────────
-// 0 = empty cell (mittelschwer: ~30 givens)
 var SOLUTION = [
   [5,3,4, 6,7,8, 9,1,2],
   [6,7,2, 1,9,5, 3,4,8],
@@ -155,18 +152,17 @@ var PUZZLE = [
 // ── BATTLESHIP ───────────────────────────────────────────────────
 var BS = {
   SIZE: 10,
-  // Ships: [length, count]
   SHIPS: [[5,1],[4,1],[3,2],[2,1]],
-  playerGrid: [],   // 0=empty,1=ship,2=miss,3=hit
-  aiGrid: [],       // same
-  playerShips: [],  // [{r,c,len,dir,hits}]
+  playerGrid: [],
+  aiGrid: [],
+  playerShips: [],
   aiShips: [],
-  aiMoves: [],      // cells AI has already shot
-  aiHits: [],       // cells AI has hit (for hunt mode)
-  aiHuntTarget: [], // cells to try next (hunt mode)
+  aiMoves: [],
+  aiHits: [],
+  aiHuntTarget: [],
   gameOver: false,
   playerTurn: true,
-  firstGame: true,  // first game AI plays extra smart (to make Lisa lose)
+  firstGame: true,
 
   init: function(){
     this.playerGrid = this.emptyGrid();
@@ -178,7 +174,6 @@ var BS = {
     this.aiHuntTarget = [];
     this.gameOver = false;
     this.playerTurn = true;
-    // Place ships
     this.placeShipsRandom(this.aiGrid, this.aiShips);
     this.placeShipsRandom(this.playerGrid, this.playerShips);
   },
@@ -215,7 +210,6 @@ var BS = {
       var rr=dir==='v'?r+i:r;
       var cc=dir==='h'?c+i:c;
       if(rr<0||rr>=this.SIZE||cc<0||cc>=this.SIZE) return false;
-      // check cell and neighbors
       for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){
         var nr=rr+dr, nc=cc+dc;
         if(nr>=0&&nr<this.SIZE&&nc>=0&&nc<this.SIZE&&grid[nr][nc]===1) return false;
@@ -251,20 +245,17 @@ var BS = {
 
   aiShoot: function(){
     if(this.playerTurn||this.gameOver) return null;
-    var r,c,key;
+    var r,c;
     var S=this;
 
-    // Hard mode on first game: use probability density
     if(this.firstGame){
       var best=this.bestAiMove();
       r=best[0]; c=best[1];
     } else {
-      // Medium: hunt/target mode
       if(this.aiHuntTarget.length>0){
         var t=this.aiHuntTarget.shift();
         r=t[0]; c=t[1];
       } else {
-        // Parity shooting (checkerboard pattern)
         var candidates=[];
         for(var rr=0;rr<S.SIZE;rr++){
           for(var cc=0;cc<S.SIZE;cc++){
@@ -281,8 +272,7 @@ var BS = {
       }
     }
 
-    key=r+','+c;
-    this.aiMoves.push(key);
+    this.aiMoves.push(r+','+c);
     var hit=this.playerGrid[r][c]===1;
     this.playerGrid[r][c]=hit?3:2;
 
@@ -293,11 +283,9 @@ var BS = {
         ship.hits++;
         if(ship.hits===ship.len){
           ship.sunk=true;
-          // clear hunt targets for this ship
           this.aiHuntTarget=[];
           this.aiHits=this.aiHits.filter(function(h){return !ship.cells.some(function(sc){return sc[0]===h[0]&&sc[1]===h[1];});});
         } else {
-          // add adjacent targets
           this.addHuntTargets(r,c);
         }
       }
@@ -311,7 +299,6 @@ var BS = {
   addHuntTargets: function(r,c){
     var S=this;
     var dirs=[[0,1],[0,-1],[1,0],[-1,0]];
-    // If multiple hits in a line, extend that line
     if(S.aiHits.length>1){
       var last=S.aiHits[S.aiHits.length-2];
       var dr=r-last[0], dc=c-last[1];
@@ -333,16 +320,13 @@ var BS = {
   },
 
   bestAiMove: function(){
-    // Probability density map
     var S=this;
     var density=S.emptyGrid().map(function(r){return r.map(function(){return 0;});});
     S.SHIPS.forEach(function(spec){
       var len=spec[0];
-      // Check all unsunk ships of this length
       var hasSunk=S.playerShips.filter(function(sh){return sh.len===len&&sh.sunk;}).length;
       var total=spec[1];
       if(hasSunk>=total) return;
-      // Horizontal
       for(var r=0;r<S.SIZE;r++){
         for(var c=0;c<=S.SIZE-len;c++){
           var ok=true;
@@ -353,7 +337,6 @@ var BS = {
           if(ok) for(var i=0;i<len;i++) density[r][c+i]++;
         }
       }
-      // Vertical
       for(var r=0;r<=S.SIZE-len;r++){
         for(var c=0;c<S.SIZE;c++){
           var ok=true;
@@ -365,7 +348,6 @@ var BS = {
         }
       }
     });
-    // Find max density cell not yet shot
     var best=null, bestVal=-1;
     for(var r=0;r<S.SIZE;r++){
       for(var c=0;c<S.SIZE;c++){
@@ -383,10 +365,6 @@ var BS = {
 
   checkWin: function(ships){
     return ships.every(function(s){return s.sunk;});
-  },
-
-  totalShipCells: function(ships){
-    return ships.reduce(function(a,s){return a+s.len;},0);
   }
 };
 
@@ -401,24 +379,20 @@ function renderBattleship(){
   var qt=document.createElement("div");qt.className="q-text";
   qt.textContent="Besiege den KI-Bot um weiterzukommen!";card.appendChild(qt);
 
-  // Status bar
   var status=document.createElement("div");status.id="bs-status";
   status.style.cssText="font-size:13px;color:var(--gold);margin-bottom:12px;min-height:20px;text-align:center;";
   status.textContent="Du bist dran! Schiesse auf das KI-Feld (unten).";
   card.appendChild(status);
 
-  // Layout: two grids side by side
   var layout=document.createElement("div");
   layout.style.cssText="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;";
 
-  // --- Player grid ---
   var pWrap=document.createElement("div");pWrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:4px;";
   var pLabel=document.createElement("div");pLabel.style.cssText="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;";
   pLabel.textContent="Dein Feld";pWrap.appendChild(pLabel);
   pWrap.appendChild(bsMakeGrid("bs-player",false));
   layout.appendChild(pWrap);
 
-  // --- AI grid ---
   var aWrap=document.createElement("div");aWrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:4px;";
   var aLabel=document.createElement("div");aLabel.style.cssText="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;";
   aLabel.textContent="KI-Feld";aWrap.appendChild(aLabel);
@@ -427,18 +401,11 @@ function renderBattleship(){
 
   card.appendChild(layout);
 
-  // Ships remaining display
   var shipsInfo=document.createElement("div");shipsInfo.id="bs-ships";
   shipsInfo.style.cssText="display:flex;justify-content:space-around;margin-top:12px;font-size:11px;color:var(--muted);";
   card.appendChild(shipsInfo);
   bsUpdateShipsInfo();
 
-  // Autofill button (test only)
-  var afBs=document.createElement("button");afBs.className="btn-autofill";afBs.textContent="Loesung automatisch einfuellen (KI-Schiffe sichtbar + autoplay)";
-  afBs.addEventListener("click",bsAutoSolve);
-  card.appendChild(afBs);
-
-  // Next button (hidden until win)
   var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
   bn.textContent="Weiter ->";bn.addEventListener("click",next);
   card.appendChild(bn);
@@ -485,28 +452,24 @@ function bsRenderGridCells(){
       if(ael) bsColorCell(ael, BS.aiGrid[r][c], false);
     }
   }
-  // Show sunk ships on AI grid + grey out surrounding cells
   BS.aiShips.forEach(function(s){
     if(s.sunk){
       s.cells.forEach(function(cell){
         var el=document.getElementById("bs-ai-"+cell[0]+"-"+cell[1]);
         if(el){el.style.background="rgba(201,80,80,0.7)";el.textContent="✕";}
       });
-      // Grey out all border cells around sunken ship
       s.cells.forEach(function(cell){
         for(var dr=-1;dr<=1;dr++){
           for(var dc=-1;dc<=1;dc++){
             if(dr===0&&dc===0) continue;
             var nr=cell[0]+dr, nc=cell[1]+dc;
             if(nr<0||nr>=10||nc<0||nc>=10) continue;
-            // Only mark if not already hit/sunk
             if(BS.aiGrid[nr][nc]===0||BS.aiGrid[nr][nc]===2){
               var el=document.getElementById("bs-ai-"+nr+"-"+nc);
               if(el&&el.textContent!=="✕"){
                 el.style.background="rgba(100,100,100,0.35)";
                 el.textContent="·";
                 el.style.pointerEvents="none";
-                // Mark as miss so it can't be clicked again
                 if(BS.aiGrid[nr][nc]===0) BS.aiGrid[nr][nc]=2;
               }
             }
@@ -515,7 +478,6 @@ function bsRenderGridCells(){
       });
     }
   });
-  // Show sunk ships on player grid + grey border
   BS.playerShips.forEach(function(s){
     if(s.sunk){
       s.cells.forEach(function(cell){
@@ -559,7 +521,7 @@ function bsSetStatus(msg, color){
 function bsPlayerShoot(r,c){
   if(!BS.playerTurn||BS.gameOver) return;
   var result=BS.playerShoot(r,c);
-  if(!result) return; // already shot here
+  if(!result) return;
 
   bsRenderGridCells();
   bsUpdateShipsInfo();
@@ -573,10 +535,8 @@ function bsPlayerShoot(r,c){
   bsSetStatus(result==='hit'?"Treffer! Nochmal du! ✓":"Daneben! KI ist dran...","var(--gold)");
 
   if(result==='miss'){
-    // AI shoots after short delay
     setTimeout(bsDoAiTurn, 600);
   } else {
-    // hit: player shoots again
     BS.playerTurn=true;
   }
 }
@@ -591,10 +551,9 @@ function bsDoAiTurn(){
 
   if(res==='ai_win'){
     bsSetStatus("Die KI hat gewonnen! Versuche es nochmal! 💪","#e88888");
-    // Reset and restart after delay
     setTimeout(function(){
       BS.init();
-      BS.firstGame=false; // second game is medium difficulty
+      BS.firstGame=false;
       bsRenderGridCells();
       bsUpdateShipsInfo();
       bsSetStatus("Neues Spiel! Du bist dran!","var(--gold)");
@@ -608,23 +567,6 @@ function bsDoAiTurn(){
   } else {
     bsSetStatus("KI daneben! Du bist dran.","var(--gold)");
   }
-}
-
-function bsAutoSolve(){
-  // Instantly sink all AI ships for player
-  BS.aiShips.forEach(function(s){
-    s.cells.forEach(function(cell){
-      BS.aiGrid[cell[0]][cell[1]]=3;
-    });
-    s.hits=s.len;
-    s.sunk=true;
-  });
-  BS.gameOver=true;
-  BS.firstGame=false;
-  bsRenderGridCells();
-  bsUpdateShipsInfo();
-  bsSetStatus("Alle KI-Schiffe automatisch versenkt! 🎉","#7ee8a8");
-  document.getElementById("bn").className="btn-next show";
 }
 
 // ── SNAKE ────────────────────────────────────────────────────────
@@ -668,7 +610,6 @@ var SN = {
   },
 
   setDir: function(dx,dy){
-    // Prevent reversing
     if(dx===-this.dir.x && dy===-this.dir.y) return;
     this.nextDir={x:dx,y:dy};
     if(!this.started) this.start();
@@ -687,11 +628,9 @@ var SN = {
     var head=this.snake[0];
     var nx=head.x+this.dir.x, ny=head.y+this.dir.y;
 
-    // Wall collision
     if(nx<0||nx>=this.COLS||ny<0||ny>=this.ROWS){
       this.endGame(false); return;
     }
-    // Self collision
     if(this.snake.some(function(s){return s.x===nx&&s.y===ny;})){
       this.endGame(false); return;
     }
@@ -733,13 +672,11 @@ function renderSnake(){
   var qt=document.createElement("div");qt.className="q-text";
   qt.textContent="Erreiche eine Laenge von "+SN.TARGET+" um weiterzukommen!";card.appendChild(qt);
 
-  // Length counter
   var counter=document.createElement("div");counter.id="sn-counter";
   counter.style.cssText="text-align:center;font-size:13px;color:var(--gold);margin-bottom:8px;";
   counter.textContent="Laenge: 3 / "+SN.TARGET;
   card.appendChild(counter);
 
-  // Canvas
   var canvas=document.createElement("canvas");canvas.id="sn-canvas";
   var csize=Math.min(320, Math.floor((window.innerWidth-60)/1)*1);
   csize=Math.floor(csize/SN.COLS)*SN.COLS;
@@ -747,13 +684,11 @@ function renderSnake(){
   canvas.style.cssText="display:block;margin:0 auto;border-radius:8px;border:1px solid rgba(201,168,76,0.2);background:#111;";
   card.appendChild(canvas);
 
-  // Status
   var status=document.createElement("div");status.id="sn-status";
   status.style.cssText="text-align:center;font-size:13px;color:var(--muted);margin:8px 0 4px;min-height:20px;";
   status.textContent="Druecke eine Pfeil-Taste zum Starten!";
   card.appendChild(status);
 
-  // Arrow buttons
   var arrowWrap=document.createElement("div");
   arrowWrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px auto;width:fit-content;";
 
@@ -778,7 +713,6 @@ function renderSnake(){
   arrowWrap.appendChild(midRow);
   card.appendChild(arrowWrap);
 
-  // Restart button
   var restartBtn=document.createElement("button");restartBtn.id="sn-restart";
   restartBtn.className="btn-check";restartBtn.style.cssText="width:100%;margin-top:8px;display:none;";
   restartBtn.textContent="Nochmal versuchen";
@@ -789,18 +723,6 @@ function renderSnake(){
   });
   card.appendChild(restartBtn);
 
-  // Autofill (test only)
-  var afSn=document.createElement("button");afSn.className="btn-autofill";
-  afSn.textContent="Loesung automatisch einfuellen";
-  afSn.addEventListener("click",function(){
-    SN.length=SN.TARGET;
-    SN.won=true;SN.gameOver=true;
-    if(SN.timer){clearInterval(SN.timer);SN.timer=null;}
-    snRender();snShowResult(true);
-  });
-  card.appendChild(afSn);
-
-  // Next button
   var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
   bn.textContent="Weiter ->";bn.addEventListener("click",next);
   card.appendChild(bn);
@@ -817,13 +739,11 @@ function snRender(){
 
   ctx.fillStyle="#111";ctx.fillRect(0,0,cw,ch);
 
-  // Grid dots
   ctx.fillStyle="rgba(255,255,255,0.04)";
   for(var y=0;y<SN.ROWS;y++)
     for(var x=0;x<SN.COLS;x++)
       ctx.fillRect(x*cellW+cellW/2-1,y*cellH+cellH/2-1,2,2);
 
-  // Food
   if(SN.food){
     ctx.fillStyle="#c9a84c";
     var fx=SN.food.x*cellW, fy=SN.food.y*cellH;
@@ -832,7 +752,6 @@ function snRender(){
     ctx.fill();
   }
 
-  // Snake
   SN.snake.forEach(function(seg,i){
     var isHead=i===0;
     ctx.fillStyle=isHead?"#e8c97a":SN.won?"#4caf7d":"#7aad60";
@@ -844,7 +763,6 @@ function snRender(){
     ctx.fill();
   });
 
-  // Game over overlay
   if(SN.gameOver&&!SN.won){
     ctx.fillStyle="rgba(0,0,0,0.65)";ctx.fillRect(0,0,cw,ch);
     ctx.fillStyle="#e88888";ctx.font="bold "+Math.floor(cellW*1.2)+"px DM Sans,sans-serif";
@@ -858,7 +776,6 @@ function snRender(){
     ctx.fillText("GESCHAFFT! 🎉",cw/2,ch/2);
   }
 
-  // Update counter
   var counter=document.getElementById("sn-counter");
   if(counter) counter.textContent="Laenge: "+SN.length+" / "+SN.TARGET;
 }
@@ -925,7 +842,7 @@ var KN = {
   },
 
   toggleHold: function(i){
-    if(this.rollsLeft===3||this.rollsLeft===0) return; // must roll first
+    if(this.rollsLeft===3||this.rollsLeft===0) return;
     this.held[i]=!this.held[i];
   },
 
@@ -1001,17 +918,14 @@ function renderKniffel(){
   var qt=document.createElement("div");qt.className="q-text";
   qt.textContent="Erreiche mindestens "+KN.TARGET+" Punkte!";card.appendChild(qt);
 
-  // Score summary bar
   var summary=document.createElement("div");summary.id="kn-summary";
   summary.style.cssText="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:var(--surface2);border-radius:8px;";
   card.appendChild(summary);
 
-  // Dice area
   var diceWrap=document.createElement("div");diceWrap.id="kn-dice";
   diceWrap.style.cssText="display:flex;justify-content:center;gap:8px;margin-bottom:12px;";
   card.appendChild(diceWrap);
 
-  // Roll button
   var rollBtn=document.createElement("button");rollBtn.id="kn-roll";
   rollBtn.style.cssText="width:100%;padding:13px;background:linear-gradient(135deg,#c9a84c,#e8c97a);border:none;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;color:#0d0d0d;font-family:'DM Sans',sans-serif;margin-bottom:14px;";
   rollBtn.textContent="Wuerfeln (3 verbleibend)";
@@ -1020,18 +934,10 @@ function renderKniffel(){
   });
   card.appendChild(rollBtn);
 
-  // Scoresheet
   var sheet=document.createElement("div");sheet.id="kn-sheet";
   sheet.style.cssText="display:flex;flex-direction:column;gap:2px;";
   card.appendChild(sheet);
 
-  // Autofill (test only)
-  var afKn=document.createElement("button");afKn.className="btn-autofill";
-  afKn.textContent="Loesung automatisch einfuellen (260+ Punkte)";
-  afKn.addEventListener("click",knAutoSolve);
-  card.appendChild(afKn);
-
-  // Next button
   var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
   bn.textContent="Weiter ->";bn.addEventListener("click",next);
   card.appendChild(bn);
@@ -1043,7 +949,6 @@ function knRefresh(){
   knRenderDice();
   knRenderSheet();
   knRenderSummary();
-  // Update roll button
   var rb=document.getElementById("kn-roll");
   if(!rb) return;
   if(KN.gameOver){
@@ -1076,11 +981,11 @@ function knRenderDice(){
       "width:48px;height:48px;",
       "display:flex;align-items:center;justify-content:center;",
       "font-size:34px;border-radius:10px;cursor:pointer;",
-      "border:2px solid "+(held?"#c9a84c":"rgba(255,255,255,0.1)"),";",
-      "background:"+(held?"rgba(201,168,76,0.15)":"var(--surface2)"),";",
+      "border:2px solid "+(held?"#c9a84c":"rgba(255,255,255,0.1)"),
+      "background:"+(held?"rgba(201,168,76,0.15)":"var(--surface2)"),
       "transition:all 0.15s;",
       "user-select:none;"
-    ].join("");
+    ].join(";");
     (function(idx){
       die.addEventListener("click",function(){
         KN.toggleHold(idx);knRenderDice();
@@ -1099,7 +1004,6 @@ function knRenderSheet(){
   var upperSum=KN.getUpperSum();
   var bonusNeeded=Math.max(0,63-upperSum);
 
-  // Section header
   function makeHeader(txt){
     var h=document.createElement("div");
     h.style.cssText="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:6px 0 2px;opacity:0.8;";
@@ -1111,7 +1015,6 @@ function knRenderSheet(){
     knMakeRow(sheet, cat);
   });
 
-  // Upper bonus row
   var bonusRow=document.createElement("div");
   bonusRow.style.cssText="display:flex;justify-content:space-between;padding:5px 8px;background:var(--surface2);border-radius:6px;margin:2px 0;font-size:12px;color:var(--muted);";
   var bonusLabel=document.createElement("span");bonusLabel.textContent="Bonus (>=63 Pkt)";
@@ -1139,10 +1042,10 @@ function knMakeRow(sheet, cat){
   row.style.cssText=[
     "display:flex;justify-content:space-between;align-items:center;",
     "padding:6px 8px;border-radius:6px;margin:2px 0;",
-    "font-size:13px;cursor:"+(canClick?"pointer":"default")+";",
-    "background:"+(scored?"rgba(76,175,125,0.08)":"var(--surface2)")+";",
-    "border:1px solid "+(canClick&&preview>0?"rgba(201,168,76,0.3)":"transparent")+";"
-  ].join("");
+    "font-size:13px;cursor:"+(canClick?"pointer":"default"),
+    "background:"+(scored?"rgba(76,175,125,0.08)":"var(--surface2)"),
+    "border:1px solid "+(canClick&&preview>0?"rgba(201,168,76,0.3)":"transparent")
+  ].join(";");
 
   var label=document.createElement("span");
   label.textContent=cat.label;
@@ -1151,7 +1054,7 @@ function knMakeRow(sheet, cat){
   var valEl=document.createElement("span");
   if(scored){
     valEl.textContent=KN.scores[cat.id];
-    valEl.style.cssText="font-weight:600;color:"+(KN.scores[cat.id]>0?"#7ee8a8":"var(--muted)")+";";
+    valEl.style.cssText="font-weight:600;color:"+(KN.scores[cat.id]>0?"#7ee8a8":"var(--muted)");
   } else if(preview!==null){
     valEl.textContent=preview>0?"+"+preview:"0";
     valEl.style.cssText="color:"+(preview>0?"rgba(201,168,76,0.8)":"var(--muted)")+";font-size:12px;";
@@ -1196,7 +1099,6 @@ function knShowResult(){
   var rb=document.getElementById("kn-roll");
   if(rb) rb.style.display="none";
 
-  // Show result card
   var card=document.getElementById("card");
   var resultDiv=document.createElement("div");
   resultDiv.className="feedback show "+(KN.won?"ok":"nope");
@@ -1206,7 +1108,6 @@ function knShowResult(){
     if(bn) bn.className="btn-next show";
   } else {
     resultDiv.textContent="Leider nur "+total+" Punkte. Ziel: "+KN.TARGET+". Versuche es nochmal!";
-    // Restart button
     var restart=document.createElement("button");
     restart.className="btn-check";restart.style.cssText="width:100%;margin-top:10px;";
     restart.textContent="Nochmal spielen";
@@ -1220,21 +1121,11 @@ function knShowResult(){
   card.appendChild(resultDiv);
 }
 
-function knAutoSolve(){
-  // Fill max possible scores
-  KN.scores={
-    ones:3,twos:8,threes:12,fours:16,fives:20,sixes:18,
-    threeoak:26,fouroak:27,fhouse:25,sstraight:30,lstraight:40,kniffel:50,chance:29
-  };
-  KN.round=14;KN.gameOver=true;KN.won=true;
-  knRefresh();knShowResult();
-}
-
 // ── QUIZ DATA ────────────────────────────────────────────────────
 var qs=[];
 
-var TOTAL = 6; // sudoku+crossword+battleship+snake+kniffel+caesar
-var cur = 0; // 0 = sudoku, 1..7 = quiz
+var TOTAL = 6;
+var cur = 0;
 var locked = false;
 
 // ── NAVIGATION ───────────────────────────────────────────────────
@@ -1253,8 +1144,8 @@ function updateProgress(){
 }
 
 // ── SUDOKU ───────────────────────────────────────────────────────
-var grid = []; // user's current board (copy of PUZZLE)
-var selected = null; // {r,c}
+var grid = [];
+var selected = null;
 
 function initGrid(){
   grid = [];
@@ -1272,14 +1163,12 @@ function renderSudoku(){
 
   var wrap=document.createElement("div");wrap.className="sudoku-wrap";
 
-  // Grid
   var gridEl=document.createElement("div");gridEl.className="sudoku-grid";gridEl.id="sudokuGrid";
 
   for(var r=0;r<9;r++){
     for(var c=0;c<9;c++){
       var cell=document.createElement("button");
       cell.className="cell";
-      // thick box borders
       if(c===2||c===5) cell.classList.add("box-right");
       if(r===2||r===5) cell.classList.add("box-bottom");
 
@@ -1300,10 +1189,8 @@ function renderSudoku(){
   }
   wrap.appendChild(gridEl);
 
-  // Error/ok message
   var msg=document.createElement("div");msg.id="sudoku-msg";msg.className="sudoku-err";wrap.appendChild(msg);
 
-  // Numpad
   var numpad=document.createElement("div");numpad.className="numpad";
   for(var n=1;n<=9;n++){
     var nb=document.createElement("button");nb.textContent=n;
@@ -1312,7 +1199,6 @@ function renderSudoku(){
   }
   wrap.appendChild(numpad);
 
-  // Delete + Check buttons
   var row2=document.createElement("div");row2.style.cssText="display:flex;gap:10px;width:100%;max-width:340px;";
   var delBtn=document.createElement("button");delBtn.className="btn-check";delBtn.style.flex="1";delBtn.textContent="Loeschen";
   delBtn.addEventListener("click",function(){enterNum(0);});
@@ -1320,20 +1206,6 @@ function renderSudoku(){
   checkBtn.addEventListener("click",checkSudoku);
   row2.appendChild(delBtn);row2.appendChild(checkBtn);
   wrap.appendChild(row2);
-
-  var afBtn=document.createElement("button");afBtn.className="btn-autofill";afBtn.textContent="Loesung automatisch einfuellen";
-  afBtn.addEventListener("click",function(){
-    for(var r=0;r<9;r++){for(var c=0;c<9;c++){
-      if(PUZZLE[r][c]===0){
-        grid[r][c]=SOLUTION[r][c];
-        var el=document.getElementById("cell-"+r+"-"+c);
-        if(el){el.textContent=SOLUTION[r][c];el.classList.remove("error");}
-      }
-    }}
-    document.getElementById("sudoku-msg").textContent="";
-    selected=null;
-  });
-  wrap.appendChild(afBtn);
 
   var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";bn.textContent="Weiter ->";
   bn.addEventListener("click",next);
@@ -1345,7 +1217,6 @@ function renderSudoku(){
 function selectCell(r,c){
   if(PUZZLE[r][c]!==0)return;
   selected={r:r,c:c};
-  // clear all selected
   for(var i=0;i<9;i++)for(var j=0;j<9;j++){
     var el=document.getElementById("cell-"+i+"-"+j);
     if(el) el.classList.remove("selected");
@@ -1365,7 +1236,6 @@ function enterNum(num){
 }
 
 function checkSudoku(){
-  // check all cells filled
   for(var r=0;r<9;r++){
     for(var c=0;c<9;c++){
       if(grid[r][c]===0){
@@ -1374,11 +1244,9 @@ function checkSudoku(){
       }
     }
   }
-  // check correctness, highlight errors
   var allOk=true;
   for(var r=0;r<9;r++){
     for(var c=0;c<9;c++){
-      var el=document.getElementById("cell-"+c+"-"+(r*9+c));
       var cell=document.getElementById("cell-"+r+"-"+c);
       if(grid[r][c]!==SOLUTION[r][c]){
         allOk=false;
@@ -1440,20 +1308,6 @@ function render(){
   var d1=document.createElement("div");d1.className="q-type";d1.textContent="Raetsel "+(cur+1)+" von "+TOTAL+" - "+q.tag;card.appendChild(d1);
   var d2=document.createElement("div");d2.className="q-text";d2.textContent=q.q;card.appendChild(d2);
 
-  // AUTOFILL BUTTON (test only)
-  (function(qq){
-    var afQ=document.createElement("button");afQ.className="btn-autofill";afQ.textContent="Autofill";
-    afQ.addEventListener("click",function(){
-      if(qq.type==="mc"){
-        checkMC(qq.correct);
-      } else {
-        var inp=document.getElementById("inp");
-        if(inp){inp.value=qq.correct[0];checkTxt();}
-      }
-    });
-    card.appendChild(afQ);
-  })(q);
-
   if(q.type==="mc"){
     var wrap=document.createElement("div");wrap.className="choices";
     q.choices.forEach(function(c,i){
@@ -1474,25 +1328,6 @@ function render(){
   }
 
   var fb=document.createElement("div");fb.className="feedback";fb.id="fb";card.appendChild(fb);
-
-  // AUTOFILL BUTTON (test only) - placed after feedback, uses q captured correctly
-  (function(qq){
-    var afQ=document.createElement("button");afQ.className="btn-autofill";afQ.textContent="Loesung automatisch einfuellen";
-    afQ.addEventListener("click",function(){
-      if(locked) return;
-      if(qq.type==="mc"){
-        // choices exist in DOM now
-        checkMC(qq.correct);
-      } else {
-        var inp=document.getElementById("inp");
-        if(inp && Array.isArray(qq.correct) && qq.correct.length>0){
-          inp.value=qq.correct[0];
-          checkTxt();
-        }
-      }
-    });
-    card.appendChild(afQ);
-  })(q);
 
   var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
   bn.textContent=cur<TOTAL-1?"Weiter ->":"Geschenk enthuellen!";
@@ -1535,10 +1370,7 @@ function next(){
   else render();
 }
 
-
 // ── CROSSWORD DATA ───────────────────────────────────────────────
-// Each entry: word, clue, solPos (index in word of the solution letter)
-// Solution letters: G,E,B,U,R,T,S,T,A,G = GEBURTSTAG
 var CW_WORDS = [
   {word:"GOLF",       solPos:0, clue:"Automarke - bekanntes VW-Modell"},
   {word:"INDONESIEN", solPos:5, clue:"FJs Lieblingsland"},
@@ -1574,20 +1406,15 @@ function renderCrossword(){
   var cwWrap=document.createElement("div");cwWrap.id="cwWrap";
   cwWrap.style.cssText="display:flex;flex-direction:column;gap:10px;width:100%;";
 
-  var maxLen = 0;
-  CW_WORDS.forEach(function(w){ if(w.word.length>maxLen) maxLen=w.word.length; });
-
   CW_WORDS.forEach(function(wordObj, wi){
     var rowDiv=document.createElement("div");
     rowDiv.style.cssText="display:flex;align-items:center;gap:4px;";
 
-    // Row number
     var numEl=document.createElement("div");
     numEl.style.cssText="min-width:18px;font-size:11px;color:var(--muted);text-align:right;";
     numEl.textContent=(wi+1)+".";
     rowDiv.appendChild(numEl);
 
-    // Cells
     var cellsDiv=document.createElement("div");
     cellsDiv.style.cssText="display:flex;gap:3px;";
 
@@ -1615,12 +1442,11 @@ function renderCrossword(){
 
       inp.value = (cwState[wi] && cwState[wi][ci]) ? cwState[wi][ci] : "";
 
-      (function(w2,c2,nextWi,nextCi){
+      (function(w2,c2){
         inp.addEventListener("input",function(){
           var v=this.value.replace(/[^a-zA-Z]/g,"").toUpperCase().slice(-1);
           this.value=v;
           cwState[w2][c2]=v;
-          // auto-advance
           if(v){
             var nxtCi=c2+1;
             if(nxtCi<CW_WORDS[w2].word.length){
@@ -1640,7 +1466,6 @@ function renderCrossword(){
       cellsDiv.appendChild(inp);
     }
 
-    // Clue
     var clueEl=document.createElement("div");
     clueEl.style.cssText="font-size:12px;color:var(--muted);line-height:1.3;padding-left:6px;flex:1;";
     clueEl.textContent=wordObj.clue;
@@ -1652,7 +1477,6 @@ function renderCrossword(){
 
   card.appendChild(cwWrap);
 
-  // Solution word display
   var solDiv=document.createElement("div");
   solDiv.style.cssText="margin-top:16px;display:flex;align-items:center;gap:8px;";
   var solLabel=document.createElement("div");
@@ -1671,20 +1495,17 @@ function renderCrossword(){
   solDiv.appendChild(solCells);
   card.appendChild(solDiv);
 
-  // live update solution word as user types
   function updateSolutionDisplay(){
     for(var i=0;i<CW_SOLUTION.length;i++){
       var el=document.getElementById("sol-"+i);
       if(el) el.textContent = cwState[i][CW_WORDS[i].solPos]||"";
     }
   }
-  // patch solPos inputs to update solution
   CW_WORDS.forEach(function(w,wi){
     var inpSol=document.getElementById("cw-"+wi+"-"+w.solPos);
     if(inpSol) inpSol.addEventListener("input",updateSolutionDisplay);
   });
 
-  // msg + check button
   var msg=document.createElement("div");msg.id="cw-msg";msg.className="feedback";msg.style.marginTop="12px";card.appendChild(msg);
 
   var checkBtn=document.createElement("button");checkBtn.className="btn-check";
@@ -1693,24 +1514,6 @@ function renderCrossword(){
   checkBtn.addEventListener("click",checkCrossword);
   card.appendChild(checkBtn);
 
-  var afBtnCw2=document.createElement("button");afBtnCw2.className="btn-autofill";
-  afBtnCw2.style.marginTop="8px";
-  afBtnCw2.textContent="Loesung automatisch einfuellen";
-  afBtnCw2.addEventListener("click",function(){
-    CW_WORDS.forEach(function(w,wi){
-      w.word.split("").forEach(function(ch,ci){
-        cwState[wi][ci]=ch;
-        var inp=document.getElementById("cw-"+wi+"-"+ci);
-        if(inp)inp.value=ch;
-      });
-    });
-    for(var i=0;i<CW_SOLUTION.length;i++){
-      var el=document.getElementById("sol-"+i);
-      if(el)el.textContent=CW_WORDS[i].word[CW_WORDS[i].solPos];
-    }
-  });
-  card.appendChild(afBtnCw2);
-
   var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
   bn.textContent="Weiter ->";
   bn.addEventListener("click",next);
@@ -1718,13 +1521,10 @@ function renderCrossword(){
 }
 
 function checkCrossword(){
-  var allFilled=true;
   var errors=[];
 
   CW_WORDS.forEach(function(wordObj,wi){
-    var entered=cwState[wi].join("").toUpperCase();
     var correct=wordObj.word.toUpperCase();
-    if(entered.length<correct.length||entered.indexOf("")>=0) allFilled=false;
     for(var ci=0;ci<correct.length;ci++){
       var inp=document.getElementById("cw-"+wi+"-"+ci);
       if(!inp) continue;
@@ -1742,7 +1542,6 @@ function checkCrossword(){
 
   var msg=document.getElementById("cw-msg");
   if(errors.length===0){
-    // check solution word
     var solWord=CW_WORDS.map(function(w,wi){return cwState[wi][w.solPos]||"";}).join("").toUpperCase();
     if(solWord===CW_SOLUTION){
       msg.className="feedback show ok";
@@ -1779,7 +1578,6 @@ function renderCaesar(){
   var qt=document.createElement("div");qt.className="q-text";
   qt.textContent="Entschluessele die Botschaft und finde das Reiseziel!";card.appendChild(qt);
 
-  // Encoded message display
   var msgBox=document.createElement("div");
   msgBox.style.cssText="background:var(--surface2);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:20px;margin-bottom:16px;text-align:center;";
 
@@ -1793,7 +1591,6 @@ function renderCaesar(){
   msgText.textContent="DPY MHOYLU UHJO DPLU";
   msgBox.appendChild(msgText);
 
-  // Alphabet decoder wheel
   var decoderLabel=document.createElement("div");
   decoderLabel.style.cssText="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;";
   decoderLabel.textContent="Schluesseltabelle (verschluesselt → original):";
@@ -1805,7 +1602,6 @@ function renderCaesar(){
   var alpha="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   var shifted="HIJKLMNOPQRSTUVWXYZABCDEFG";
 
-  // Split into 2 rows of 13 for mobile
   for(var row=0;row<2;row++){
     var rowEl=document.createElement("div");
     rowEl.style.cssText="display:flex;gap:2px;justify-content:center;";
@@ -1822,13 +1618,11 @@ function renderCaesar(){
   msgBox.appendChild(tableWrap);
   card.appendChild(msgBox);
 
-  // Hint
   var hint=document.createElement("div");
   hint.style.cssText="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:12px;text-align:center;";
   hint.textContent="Tipp: Jeder Buchstabe wurde um 7 Stellen nach vorne verschoben.";
   card.appendChild(hint);
 
-  // Input
   var inputWrap=document.createElement("div");inputWrap.className="input-wrap";
   var inp=document.createElement("input");inp.type="text";inp.className="text-input";
   inp.id="ca-inp";inp.placeholder="Reiseziel eingeben...";
@@ -1843,15 +1637,6 @@ function renderCaesar(){
   card.appendChild(inputWrap);
 
   var fb=document.createElement("div");fb.className="feedback";fb.id="ca-fb";card.appendChild(fb);
-
-  // Autofill (test only)
-  var afCa=document.createElement("button");afCa.className="btn-autofill";
-  afCa.textContent="Loesung automatisch einfuellen";
-  afCa.addEventListener("click",function(){
-    var inp=document.getElementById("ca-inp");
-    if(inp){inp.value="Wien";checkCaesar();}
-  });
-  card.appendChild(afCa);
 
   var bn=document.createElement("button");bn.className="btn-next";bn.id="bn";
   bn.textContent="Geschenk enthuellen!";
